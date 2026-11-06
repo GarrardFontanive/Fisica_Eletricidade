@@ -1,0 +1,16 @@
+# Materiais de apoio ficam apenas na máquina local.
+*.[pP][dD][fF]
+*.[pP][pP][tT]
+*.[pP][pP][tT][xX]
+
+# Configurações locais do editor e ferramentas.
+.vscode/
+.idea/
+.agents/
+.codex/
+.aws/
+
+# Arquivos temporários do sistema.
+.DS_Store
+Thumbs.db
+*.log
