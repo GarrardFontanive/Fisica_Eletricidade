@@ -95,10 +95,10 @@ function update() {
     const switchSize = 60;
     const switchX = rectX + rectW / 2;
     const switchY = rectY;
-
+    
     // Apaga a linha debaixo do interruptor
     ctx.clearRect(switchX - switchSize/2, switchY - 10, switchSize, 20);
-
+    
     // Contatos
     ctx.fillStyle = '#bbb';
     ctx.beginPath();
@@ -127,7 +127,7 @@ function update() {
     ctx.fillRect(rectX - batW/2, rectY + rectH/2 - batH/2, batW, 20);
     ctx.fillStyle = '#fff'; // Detalhe da Bateria
     ctx.fillRect(rectX - 10, rectY + rectH/2 - batH/2 - 5, 20, 5);
-
+    
     // Simbolos + e -
     ctx.fillStyle = '#fff';
     ctx.font = '20px Arial';
@@ -137,7 +137,7 @@ function update() {
     // 4. Desenhando a Lâmpada (Direita)
     const lampX = rectX + rectW;
     const lampY = rectY + rectH/2;
-
+    
     // Se estiver ligado, faz a lâmpada brilhar baseado na potência
     if (isFechado && potencia > 0) {
         const brilho = Math.min(potencia * 2, 255); // Ajusta intensidade
@@ -192,3 +192,4 @@ function update() {
 }
 
 update();
+
