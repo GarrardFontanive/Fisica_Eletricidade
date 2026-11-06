@@ -21,9 +21,9 @@ let potencia = 0;
 let rectX, rectY, rectW, rectH;
 
 function updateCircuitDimensions() {
-    rectW = Math.min(600, canvas.width * 0.6);
-    rectH = Math.min(300, canvas.height * 0.5);
-    rectX = (canvas.width - rectW) / 2 + 100; // Deslocado um pouco para a direita
+    rectW = Math.min(700, canvas.width * 0.6);
+    rectH = Math.min(400, canvas.height * 0.5);
+    rectX = (canvas.width - rectW) / 2 + 150; // Deslocado para a direita por causa do menu
     rectY = (canvas.height - rectH) / 2;
 }
 updateCircuitDimensions();
@@ -44,19 +44,19 @@ btnSwitch.addEventListener('click', () => {
     isFechado = !isFechado;
     if (isFechado) {
         btnSwitch.innerText = "Desligar Circuito (Abrir)";
-        btnSwitch.className = ""; // Remove a classe verde, fica vermelho
+        btnSwitch.className = ""; // Fica vermelho
     } else {
         btnSwitch.innerText = "Ligar Circuito (Fechar)";
         btnSwitch.className = "btn-green";
     }
 });
 
-// Criando os elétrons para percorrer o fio
+// Criando os elétrons
 const electrons = [];
-const numElectrons = 30;
+const numElectrons = 35;
 for (let i = 0; i < numElectrons; i++) {
     electrons.push({
-        progress: (i / numElectrons) * (rectW * 2 + rectH * 2) // Posição ao longo do perímetro
+        progress: (i / numElectrons) * (rectW * 2 + rectH * 2)
     });
 }
 
@@ -80,111 +80,148 @@ function update() {
         potencia = 0;
     }
 
-    // Atualiza Painel
+    // Atualiza Painel de Texto
     currentVal.innerText = corrente.toFixed(2) + ' A';
     powerVal.innerText = potencia.toFixed(2) + ' W';
 
-    // 1. Desenhando os Fios
+    // 1. DESENHANDO OS FIOS BASE
     ctx.beginPath();
     ctx.rect(rectX, rectY, rectW, rectH);
     ctx.strokeStyle = '#555';
     ctx.lineWidth = 10;
     ctx.stroke();
 
-    // 2. Desenhando o Interruptor (Topo)
-    const switchSize = 60;
-    const switchX = rectX + rectW / 2;
-    const switchY = rectY;
+    // 2. DESENHANDO A BATERIA (Lado Esquerdo)
+    const batX = rectX;
+    const batY = rectY + rectH / 2;
+    const batW = 50;
+    const batH = 100;
     
-    // Apaga a linha debaixo do interruptor
-    ctx.clearRect(switchX - switchSize/2, switchY - 10, switchSize, 20);
-    
-    // Contatos
-    ctx.fillStyle = '#bbb';
-    ctx.beginPath();
-    ctx.arc(switchX - switchSize/2, switchY, 8, 0, Math.PI * 2);
-    ctx.arc(switchX + switchSize/2, switchY, 8, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.clearRect(batX - 10, batY - batH/2 - 15, 20, batH + 30); // Limpa o fio por trás
 
-    // Haste do interruptor
-    ctx.beginPath();
-    ctx.moveTo(switchX - switchSize/2, switchY);
-    if (isFechado) {
-        ctx.lineTo(switchX + switchSize/2, switchY); // Fechado (deitado)
-    } else {
-        ctx.lineTo(switchX - 10, switchY - 40); // Aberto (levantado)
-    }
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 6;
-    ctx.stroke();
-
-    // 3. Desenhando a Bateria (Esquerda)
-    const batW = 40;
-    const batH = 80;
-    ctx.fillStyle = '#333';
-    ctx.fillRect(rectX - batW/2, rectY + rectH/2 - batH/2, batW, batH);
-    ctx.fillStyle = '#e94560'; // Polo Positivo
-    ctx.fillRect(rectX - batW/2, rectY + rectH/2 - batH/2, batW, 20);
-    ctx.fillStyle = '#fff'; // Detalhe da Bateria
-    ctx.fillRect(rectX - 10, rectY + rectH/2 - batH/2 - 5, 20, 5);
-    
-    // Simbolos + e -
+    // Pino positivo (topo)
+    ctx.fillStyle = '#bdc3c7';
+    ctx.fillRect(batX - 10, batY - batH/2 - 8, 20, 8);
+    // Metade Cobre (Positivo)
+    ctx.fillStyle = '#e67e22';
+    ctx.fillRect(batX - batW/2, batY - batH/2, batW, batH/2);
+    // Metade Preta (Negativo)
+    ctx.fillStyle = '#2c3e50';
+    ctx.fillRect(batX - batW/2, batY, batW, batH/2);
+    // Textos + e -
     ctx.fillStyle = '#fff';
-    ctx.font = '20px Arial';
-    ctx.fillText('+', rectX - 6, rectY + rectH/2 - batH/2 + 16);
-    ctx.fillText('-', rectX - 4, rectY + rectH/2 + batH/2 - 6);
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('+', batX, batY - batH/4);
+    ctx.fillText('-', batX, batY + batH/4);
 
-    // 4. Desenhando a Lâmpada (Direita)
-    const lampX = rectX + rectW;
-    const lampY = rectY + rectH/2;
+
+    // 3. DESENHANDO A LÂMPADA (Topo)
+    const lampX = rectX + rectW / 2;
+    const lampY = rectY;
     
-    // Se estiver ligado, faz a lâmpada brilhar baseado na potência
-    if (isFechado && potencia > 0) {
-        const brilho = Math.min(potencia * 2, 255); // Ajusta intensidade
-        ctx.shadowBlur = brilho;
-        ctx.shadowColor = 'rgba(255, 255, 0, 1)';
-        ctx.fillStyle = `rgba(255, 255, 100, ${brilho/255})`;
-    } else {
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
-    }
+    ctx.clearRect(lampX - 15, lampY - 10, 30, 20); // Limpa o fio por trás
 
+    // Base metálica da lâmpada (Rosca)
+    ctx.fillStyle = '#7f8c8d';
+    ctx.fillRect(lampX - 14, lampY - 10, 28, 20); 
+    ctx.fillStyle = '#34495e';
+    ctx.fillRect(lampX - 8, lampY + 10, 16, 8); // Contato inferior que liga no fio
+
+    // Bulbo de Vidro
+    const bulbY = lampY - 40;
     ctx.beginPath();
-    ctx.arc(lampX, lampY, 30, 0, Math.PI * 2);
+    ctx.arc(lampX, bulbY, 35, 0, Math.PI * 2);
+    
+    if (isFechado && potencia > 0) {
+        const brilho = Math.min(potencia * 5, 255);
+        ctx.fillStyle = `rgba(255, 255, 0, ${brilho / 255 * 0.7})`;
+        ctx.shadowBlur = brilho + 20;
+        ctx.shadowColor = '#ffea00';
+    } else {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.shadowBlur = 0;
+    }
     ctx.fill();
     ctx.lineWidth = 2;
-    ctx.strokeStyle = '#fff';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     ctx.stroke();
-    ctx.shadowBlur = 0; // reseta sombra pro resto
+    ctx.shadowBlur = 0; // Reset
 
-    // Filamento da lâmpada
+    // Filamento interno (Zigue-zague)
     ctx.beginPath();
-    ctx.moveTo(lampX - 10, lampY + 10);
-    ctx.lineTo(lampX - 5, lampY - 10);
-    ctx.lineTo(lampX + 5, lampY - 10);
-    ctx.lineTo(lampX + 10, lampY + 10);
-    ctx.strokeStyle = (isFechado && potencia > 0) ? '#fff' : '#555';
+    ctx.moveTo(lampX - 10, lampY - 10);
+    ctx.lineTo(lampX - 10, bulbY + 5);
+    ctx.lineTo(lampX - 5, bulbY - 10);
+    ctx.lineTo(lampX, bulbY + 5);
+    ctx.lineTo(lampX + 5, bulbY - 10);
+    ctx.lineTo(lampX + 10, bulbY + 5);
+    ctx.lineTo(lampX + 10, lampY - 10);
+    ctx.strokeStyle = (isFechado && potencia > 0) ? '#ffffff' : '#555555';
+    ctx.lineWidth = 3;
     ctx.stroke();
 
-    // 5. Animando os Elétrons (Fluxo de Corrente)
+
+    // 4. DESENHANDO O INTERRUPTOR (Embaixo)
+    const switchX = rectX + rectW / 2;
+    const switchY = rectY + rectH;
+    const swW = 80;
+
+    ctx.clearRect(switchX - swW/2 - 10, switchY - 10, swW + 20, 20); // Limpa o fio
+
+    // Terminais de Contato
+    ctx.fillStyle = '#d35400';
+    ctx.beginPath(); ctx.arc(switchX - swW/2, switchY, 10, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(switchX + swW/2, switchY, 10, 0, Math.PI*2); ctx.fill();
+
+    // Lâmina Condutora (Faca)
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = '#f39c12';
+    ctx.beginPath();
+    ctx.moveTo(switchX - swW/2, switchY);
+    if (isFechado) {
+        ctx.lineTo(switchX + swW/2, switchY); // Fechado (deitado)
+    } else {
+        ctx.lineTo(switchX - 15, switchY - 40); // Aberto (levantado)
+    }
+    ctx.stroke();
+    
+    // Pegador de plástico vermelho
+    ctx.fillStyle = '#e74c3c';
+    ctx.beginPath();
+    if (isFechado) {
+        ctx.arc(switchX + swW/2, switchY, 8, 0, Math.PI*2);
+    } else {
+        ctx.arc(switchX - 15, switchY - 40, 8, 0, Math.PI*2);
+    }
+    ctx.fill();
+
+
+    // 5. ANIMANDO OS ELÉTRONS
     electrons.forEach(el => {
-        // Só andam se estiver fechado
         if (isFechado) {
-            el.progress += corrente * 2; // Velocidade visual = Corrente * fator
+            el.progress += corrente * 1.5; // Velocidade baseada na corrente
         }
 
         const pos = getPosAlongRect(el.progress);
 
-        // Esconde os elétrons se eles passarem "por cima" dos componentes
-        const hideInBat = (pos.x === rectX && pos.y > rectY + rectH/2 - batH/2 && pos.y < rectY + rectH/2 + batH/2);
-        const hideInLamp = (pos.x === rectX + rectW && pos.y > lampY - 30 && pos.y < lampY + 30);
-        const hideInSwitch = (pos.y === rectY && pos.x > switchX - switchSize/2 && pos.x < switchX + switchSize/2);
+        // Verifica se o elétron está passando por baixo de um dos desenhos principais
+        const inBat = (pos.x === batX && pos.y > batY - batH/2 - 10 && pos.y < batY + batH/2);
+        const inLamp = (pos.y === lampY && pos.x > lampX - 15 && pos.x < lampX + 15);
+        const inSwitch = (pos.y === switchY && pos.x > switchX - swW/2 - 10 && pos.x < switchX + swW/2 + 10);
 
-        if (!hideInBat && !hideInLamp && !hideInSwitch) {
+        if (!inBat && !inLamp && !inSwitch) {
+            // Corpo do elétron
             ctx.beginPath();
-            ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
-            ctx.fillStyle = '#00e5ff'; // Cor dos elétrons
+            ctx.arc(pos.x, pos.y, 7, 0, Math.PI * 2);
+            ctx.fillStyle = '#00e5ff'; 
             ctx.fill();
+            
+            // Sinal negativo (-) no elétron
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText('-', pos.x, pos.y + 1);
         }
     });
 
@@ -192,4 +229,3 @@ function update() {
 }
 
 update();
-
