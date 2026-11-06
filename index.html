@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Simulador: Eletricidade e Efeito Joule</title>
+<style>
+body { 
+    margin: 0; 
+    padding: 0; 
+    overflow: hidden; 
+    background: #1a1a2e; 
+    font-family: Arial, sans-serif; 
+    color: white; 
+}
+#sim-canvas { 
+    display: block; 
+    width: 100vw;
+    height: 100vh;
+}
+.ui-layer { 
+    position: absolute; 
+    top: 20px; 
+    left: 20px; 
+    z-index: 10; 
+    display: flex; 
+    gap: 20px; 
+}
+.glass-panel { 
+    background: rgba(255, 255, 255, 0.1); 
+    backdrop-filter: blur(10px); 
+    padding: 20px; 
+    border-radius: 10px; 
+    border: 1px solid rgba(255, 255, 255, 0.2); 
+    width: 300px; 
+}
+h3 {
+    margin-top: 0;
+    text-transform: uppercase;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+input[type=range] { 
+    width: 100%; 
+    margin-bottom: 20px; 
+    accent-color: #e94560;
+}
+.data-row { 
+    display: flex; 
+    justify-content: space-between; 
+    margin: 10px 0; 
+    border-bottom: 1px solid rgba(255,255,255,0.1); 
+    padding-bottom: 5px; 
+    font-size: 14px;
+}
+.label-slider {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: bold;
+}
+</style>
+</head>
+<body>
+<div class="ui-layer">
+    <div class="glass-panel">
+        <h3>Interior do Condutor</h3>
+        
+        <label class="label-slider" for="ddp-slider">Diferença de Potencial (DDP): <span id="ddp-val">0 V</span></label>
+        <input type="range" id="ddp-slider" min="0" max="220" value="0">
+        
+        <div class="data-row"><span>Corrente (i):</span><span id="current-val">0.00 A</span></div>
+        <div class="data-row"><span>Temperatura:</span><span id="temp-val">20.0 °C</span></div>
+    </div>
+</div>
+
+<canvas id="sim-canvas"></canvas>
+
+<script src="app.js"></script>
+</body>
+</html>
