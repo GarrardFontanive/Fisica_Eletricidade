@@ -1,6 +1,6 @@
-# Laboratório Virtual de Eletricidade e Efeito Joule
+# Laboratório Virtual de Circuitos Elétricos
 
-Simulador interativo para explorar o movimento de elétrons no interior de um condutor e visualizar o aquecimento associado às colisões com os íons da rede. Desenvolvido em português para apoiar aulas de Física, com JavaScript e Canvas API nativa.
+Simulador interativo de um circuito com bateria, interruptor e lâmpada. Permite explorar a relação entre tensão, corrente e potência elétrica, com uma animação do fluxo de cargas. Desenvolvido em português para apoiar aulas de Física, com JavaScript e Canvas API nativa.
 
 ## Como executar
 
@@ -23,28 +23,36 @@ Depois, acesse <http://localhost:8000>.
 
 ## Como usar
 
-- Observe os elétrons amarelos e os íons inicialmente azuis no interior do condutor.
-- Ajuste a diferença de potencial (DDP) pelo controle deslizante, entre **0 e 220 V**.
-- Acompanhe a mudança no movimento dos elétrons, os indicadores de corrente e temperatura e a alteração da cor dos íons durante as colisões.
-- Reduza a tensão para observar a evolução do movimento e do aquecimento ao longo da simulação.
+- A página inicia com o circuito aberto e a bateria ajustada para **12 V**.
+- Clique em **Ligar Circuito (Fechar)** para fechar o interruptor.
+- Ajuste a diferença de potencial (DDP) da bateria entre **0 e 24 V**.
+- Observe o movimento das cargas em azul, o brilho da lâmpada e os indicadores de corrente e potência.
+- Clique em **Desligar Circuito (Abrir)** para interromper a corrente e apagar a lâmpada.
 
 ## Recursos
 
-- Animação de 150 elétrons com movimento aleatório e deriva influenciada pela tensão.
-- Rede de íons com colisões, aquecimento visual e resfriamento gradual.
-- Indicadores de corrente e temperatura atualizados durante a animação.
+- Desenho de bateria, fios, interruptor e lâmpada no Canvas.
+- Interruptor interativo para abrir e fechar o circuito.
+- Resistência da lâmpada fixada em **10 Ω**.
+- Cálculo de corrente pela Lei de Ohm e de potência elétrica.
+- Animação de 30 marcadores de carga com velocidade proporcional à corrente.
+- Brilho da lâmpada associado à potência, com limite visual de intensidade.
+- Indicadores de corrente e potência atualizados durante a animação.
 - Interface com painéis translúcidos no estilo *glassmorphism*.
 - Canvas em tela cheia, com ajuste de suas dimensões ao redimensionar a janela.
 
 ## Modelo didático e limitações
 
-A simulação é qualitativa: os valores apresentados em ampères e graus Celsius são indicadores calculados pelo modelo visual, sem calibração experimental. Eles não devem ser usados para dimensionar circuitos ou prever a temperatura de um condutor real.
+A simulação considera uma bateria ideal, fios sem resistência e uma lâmpada com resistência constante de 10 Ω. Com o interruptor fechado, os indicadores seguem:
 
-O movimento combina perturbações aleatórias, aceleração horizontal dependente da DDP e colisões simplificadas. A temperatura exibida deriva do aquecimento médio dos íons; a corrente deriva da velocidade horizontal média dos elétrons. Por isso, os indicadores podem oscilar mesmo com a tensão fixa, inclusive em 0 V.
+- **Corrente:** `I = V / R`.
+- **Potência elétrica:** `P = V × I`.
 
-A direção de movimento dos elétrons na tela é uma convenção da animação. Em um condutor metálico real, o sentido da corrente convencional é oposto ao da deriva dos elétrons.
+Por exemplo, com 12 V e o circuito fechado, a corrente é **1,20 A** e a potência é **14,40 W**. Com o circuito aberto, ambas são zero, independentemente da tensão selecionada.
 
-A rede de íons é criada ao carregar a página. Ao mudar muito o tamanho da janela, recarregue a página para redistribuí-la.
+O brilho representa visualmente a potência elétrica e satura em valores mais altos. Não é uma medição de luminosidade nem um cálculo da eficiência luminosa. O modelo não calcula temperatura ou colisões microscópicas; a resistência de uma lâmpada real pode variar com o aquecimento.
+
+Os marcadores de carga são ilustrativos, e sua velocidade não está em escala física. A direção de movimento na tela é uma convenção da animação; em um condutor metálico real, a corrente convencional tem sentido oposto à deriva dos elétrons.
 
 ## Tecnologias
 
@@ -52,8 +60,8 @@ A rede de íons é criada ao carregar a página. Ao mudar muito o tamanho da jan
 | --- | --- |
 | HTML5 | Estrutura da página e controles |
 | CSS3 | Aparência dos painéis e layout |
-| JavaScript | Movimento, colisões e indicadores |
-| Canvas API | Desenho das partículas em 2D |
+| JavaScript | Estado do circuito, cálculos elétricos e animação |
+| Canvas API | Desenho dos componentes e das cargas em 2D |
 | `requestAnimationFrame` | Atualização contínua da animação |
 
 ## Estrutura do projeto
