@@ -1,101 +1,96 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<title>Simulador: Corrente Elétrica e Secção Reta</title>
-<style>
-body { 
-    margin: 0; 
-    padding: 0; 
-    overflow: hidden; 
-    background: #1a1a2e; 
-    font-family: Arial, sans-serif; 
-    color: white; 
-}
-#sim-canvas { 
-    display: block; 
-    width: 100vw; 
-    height: 100vh; 
-}
-.ui-layer { 
-    position: absolute; 
-    top: 20px; 
-    left: 20px; 
-    z-index: 10; 
-    display: flex; 
-    gap: 20px; 
-}
-.glass-panel { 
-    background: rgba(255, 255, 255, 0.1); 
-    backdrop-filter: blur(10px); 
-    padding: 20px; 
-    border-radius: 10px; 
-    border: 1px solid rgba(255, 255, 255, 0.2); 
-    width: 360px; 
-}
-h3 { 
-    margin-top: 0; 
-    text-transform: uppercase; 
-    font-size: 14px; 
-    letter-spacing: 1px; 
-}
-input[type=range] { 
-    width: 100%; 
-    margin-bottom: 15px; 
-    accent-color: #e94560; 
-}
-.formula-box { 
-    background: rgba(0, 0, 0, 0.4); 
-    padding: 15px; 
-    border-radius: 8px; 
-    margin-top: 15px; 
-    font-family: 'Courier New', Courier, monospace; 
-    font-size: 15px; 
-}
-.formula-box p { 
-    margin: 6px 0; 
-}
-.highlight { 
-    color: #00e5ff; 
-    font-weight: bold; 
-}
-.highlight-yellow { 
-    color: #ffeb3b; 
-    font-weight: bold; 
-}
-.label-slider { 
-    display: block; 
-    margin-bottom: 8px; 
-    font-size: 14px; 
-    font-weight: bold; 
-}
-</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#08101c">
+    <title>Corrente elétrica — laboratório virtual</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
+
 <body>
-<div class="ui-layer">
-    <div class="glass-panel">
-        <h3>Secção Reta e Equações</h3>
-
-        <label class="label-slider">Elétrons cruzando (N): <span id="val-n" class="highlight-yellow">10</span> &times; 10¹⁸</label>
-        <input type="range" id="slider-n" min="1" max="50" value="10">
-
-        <label class="label-slider">Intervalo de Tempo (&Delta;t): <span id="val-t" class="highlight">1.0</span> s</label>
-        <input type="range" id="slider-t" min="0.1" max="5.0" step="0.1" value="1.0">
-
-        <div class="formula-box">
-            <p>e = 1,6 &times; 10⁻¹⁹ C</p>
-            <hr style="border-color: rgba(255,255,255,0.2); margin: 12px 0;">
-            <p>Q = N &middot; e</p>
-            <p>Q = (<span id="eq-n">10</span> &times; 10¹⁸) &middot; (1,6 &times; 10⁻¹⁹)</p>
-            <p>Q = <span id="eq-q" class="highlight-yellow">1.60</span> C</p>
-            <hr style="border-color: rgba(255,255,255,0.2); margin: 12px 0;">
-            <p>i = Q / &Delta;t</p>
-            <p>i = <span id="eq-q2">1.60</span> / <span id="eq-t">1.0</span></p>
-            <p>i = <span id="eq-i" class="highlight">1.60</span> A</p>
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-icon" aria-hidden="true">ϟ</span>
+            <div>
+                <span class="eyebrow">LABORATÓRIO VIRTUAL DE FÍSICA</span>
+                <h1>Corrente elétrica</h1>
+            </div>
         </div>
-    </div>
-</div>
-<canvas id="sim-canvas"></canvas>
-<script src="app.js"></script>
+        <div class="state-pill" id="statePill" aria-live="polite"><span class="state-dot"></span><span
+                id="stateText">CHAVE ABERTA</span></div>
+    </header>
+
+    <main class="layout">
+        <aside class="panel" aria-label="Controles da simulação">
+            <section class="section">
+                <h2>Controle do circuito</h2>
+                <button type="button" id="toggle" class="main-button" aria-pressed="false">
+                    <span class="button-symbol" aria-hidden="true">◯</span>
+                    <span id="toggleLabel">Fechar chave CH</span>
+                </button>
+            </section>
+
+            <section class="section">
+                <h2>Sentido da corrente</h2>
+                <label class="choice red">
+                    <input type="checkbox" id="convencional" checked disabled>
+                    <span class="choice-arrow" aria-hidden="true">→</span>
+                    <span>Convencional <small>Do + para o −</small></span>
+                </label>
+                <label class="choice blue">
+                    <input type="checkbox" id="real" checked disabled>
+                    <span class="choice-arrow" aria-hidden="true">←</span>
+                    <span>Elétrons <small>Do − para o +</small></span>
+                </label>
+            </section>
+
+            <section class="section formulas" aria-label="Equações da corrente elétrica">
+                <h2>Equações da aula</h2>
+                <div class="fraction-formula" aria-label="i igual a delta Q dividido por delta t">
+                    <span class="formula-i">i =</span>
+                    <span class="fraction"><span>ΔQ</span><span>Δt</span></span>
+                </div>
+                <div class="formula-secondary">ΔQ = N · |e|</div>
+                <div class="formula-result" id="formulaResult" aria-live="polite">i = 0</div>
+                <p class="formula-units">1 A = 1 C/s</p>
+            </section>
+
+            <section class="section velocity">
+                <div class="velocity-head">
+                    <h2>Velocidade visual</h2><output for="speed" id="speedOutput">1,0×</output>
+                </div>
+                <input type="range" id="speed" min="0.25" max="2.5" value="1" step="0.25"
+                    aria-label="Velocidade visual da animação">
+            </section>
+            <p class="science-note">* Visualização idealizada: no metal real, a agitação térmica continua mesmo com
+                corrente.</p>
+        </aside>
+
+        <section class="simulation" id="simulation" aria-label="Visualização do circuito">
+            <div class="simulation-header">
+                <div><strong>Dentro do fio metálico</strong><span>Ampliação microscópica + circuito realista</span>
+                </div>
+                <div class="actions">
+                    <button type="button" id="reset">↻ Reiniciar</button>
+                    <button type="button" id="full">⛶ Tela cheia</button>
+                </div>
+            </div>
+            <div class="canvas-wrap" id="canvasWrap">
+                <canvas id="canvas"
+                    aria-label="Modelo interativo com íons de cobre e elétrons no interior de um condutor, bateria V e chave CH. Clique na chave para ligar ou desligar."
+                    tabindex="0"></canvas>
+            </div>
+            <div class="legend">
+                <span><i class="ion-dot"></i> Íon metálico (+)</span>
+                <span><i class="electron-dot"></i> Elétron (−)</span>
+                <span><i class="vector-dot"></i> Vetor do elétron</span>
+                <span class="legend-tip">Clique na chave CH do desenho para acioná-la</span>
+            </div>
+        </section>
+    </main>
 </body>
+
 </html>
