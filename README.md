@@ -1,6 +1,6 @@
 # Laboratório Virtual de Circuitos Elétricos
 
-Simulador interativo de um circuito com bateria, interruptor e lâmpada. Permite explorar a relação entre tensão, corrente e potência elétrica, com uma animação do fluxo de cargas. Desenvolvido em português para apoiar aulas de Física, com JavaScript e Canvas API nativa.
+Simulador interativo de corrente elétrica com uma ampliação do interior de um fio de cobre e um circuito com bateria e chave. Permite comparar o movimento dos elétrons com a chave aberta e fechada e visualizar os sentidos da corrente convencional e da deriva dos elétrons. Desenvolvido em português para apoiar aulas de Física, com JavaScript e Canvas API nativa.
 
 ## Como executar
 
@@ -23,44 +23,42 @@ Depois, acesse <http://localhost:8000>.
 
 ## Como usar
 
-- A página inicia com o circuito aberto e a bateria ajustada para **12 V**.
-- Clique em **Ligar Circuito (Fechar)** para fechar o interruptor.
-- Ajuste a diferença de potencial (DDP) da bateria entre **0 e 24 V**.
-- Observe o movimento das cargas em azul, o brilho da lâmpada e os indicadores de corrente e potência.
-- Clique em **Desligar Circuito (Abrir)** para interromper a corrente e apagar a lâmpada.
+- A página inicia com a chave aberta e os elétrons em movimento desordenado.
+- Clique em **Fechar chave CH** ou na chave desenhada no circuito para observar o movimento orientado dos elétrons.
+- Com a chave fechada, use as opções **Convencional** e **Elétrons** para mostrar ou ocultar as setas dos sentidos da corrente.
+- Ajuste a **Velocidade visual** entre **0,25× e 2,5×** para acompanhar a animação.
+- Clique em **Abrir chave CH** para retornar ao estado sem corrente, com movimento desordenado.
+- Use **Reiniciar** para redistribuir os elétrons e abrir a chave, ou **Tela cheia** para ampliar a visualização.
+- Com o canvas em foco, pressione **Enter** ou **Espaço** para acionar a chave pelo teclado.
 
 ## Recursos
 
-- Desenho de bateria, fios, interruptor e lâmpada no Canvas.
-- Interruptor interativo para abrir e fechar o circuito.
-- Resistência da lâmpada fixada em **10 Ω**.
-- Cálculo de corrente pela Lei de Ohm e de potência elétrica.
-- Animação de 30 marcadores de carga com velocidade proporcional à corrente.
-- Brilho da lâmpada associado à potência, com limite visual de intensidade.
-- Indicadores de corrente e potência atualizados durante a animação.
-- Interface com painéis translúcidos no estilo *glassmorphism*.
-- Canvas em tela cheia, com ajuste de suas dimensões ao redimensionar a janela.
+- Ampliação do condutor com íons positivos fixos e 18 elétrons animados.
+- Comparação visual entre movimento desordenado e deriva orientada.
+- Circuito com bateria, fios de cobre e chave animada e interativa.
+- Setas independentes para corrente convencional e movimento dos elétrons.
+- Painel com as relações `i = ΔQ / Δt`, `ΔQ = N · |e|` e `1 A = 1 C/s`.
+- Controles de velocidade visual, reinício e tela cheia.
+- Layout responsivo e Canvas com proporções preservadas ao redimensionar a janela.
+- HTML, CSS e JavaScript em arquivos separados, sem dependências externas.
 
 ## Modelo didático e limitações
 
-A simulação considera uma bateria ideal, fios sem resistência e uma lâmpada com resistência constante de 10 Ω. Com o interruptor fechado, os indicadores seguem:
+A simulação é qualitativa: com a chave aberta, os elétrons apresentam movimento desordenado; com a chave fechada, são organizados em três pistas e se deslocam para a esquerda. Os vetores da corrente convencional apontam para o sentido oposto ao movimento dos elétrons.
 
-- **Corrente:** `I = V / R`.
-- **Potência elétrica:** `P = V × I`.
+As equações do painel apresentam a definição de corrente e sua relação com a carga elétrica. O indicador mostra apenas `i = 0` ou `i > 0`, conforme o estado da chave; não há cálculo numérico de corrente, tensão ou potência.
 
-Por exemplo, com 12 V e o circuito fechado, a corrente é **1,20 A** e a potência é **14,40 W**. Com o circuito aberto, ambas são zero, independentemente da tensão selecionada.
+O alinhamento dos elétrons em pistas é uma simplificação visual. Em um metal real, a agitação térmica continua mesmo quando existe corrente. O desenho mantém os íons fixos e não calcula colisões, aquecimento ou Efeito Joule.
 
-O brilho representa visualmente a potência elétrica e satura em valores mais altos. Não é uma medição de luminosidade nem um cálculo da eficiência luminosa. O modelo não calcula temperatura ou colisões microscópicas; a resistência de uma lâmpada real pode variar com o aquecimento.
-
-Os marcadores de carga são ilustrativos, e sua velocidade não está em escala física. A direção de movimento na tela é uma convenção da animação; em um condutor metálico real, a corrente convencional tem sentido oposto à deriva dos elétrons.
+O número de partículas, as dimensões e as velocidades são ilustrativos, sem escala física. O controle de velocidade afeta apenas a animação.
 
 ## Tecnologias
 
 | Tecnologia | Uso |
 | --- | --- |
 | HTML5 | Estrutura da página e controles |
-| CSS3 | Aparência dos painéis e layout |
-| JavaScript | Estado do circuito, cálculos elétricos e animação |
+| CSS3 | Aparência dos painéis e layout responsivo |
+| JavaScript | Estado do circuito, controles e animação |
 | Canvas API | Desenho dos componentes e das cargas em 2D |
 | `requestAnimationFrame` | Atualização contínua da animação |
 
@@ -70,8 +68,9 @@ Os marcadores de carga são ilustrativos, e sua velocidade não está em escala 
 .
 ├── .gitignore     # Exclusões de materiais de apoio e arquivos locais
 ├── README.md      # Apresentação e instruções de uso
-├── index.html     # Interface, estilos e elemento canvas
-└── app.js         # Motor da simulação e interação com os controles
+├── index.html     # Estrutura da interface e elemento canvas
+├── style.css      # Estilos e layout responsivo
+└── script.js      # Motor da simulação e interação com os controles
 ```
 
 ## Materiais de apoio
