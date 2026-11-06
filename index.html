@@ -2,97 +2,100 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Simulador: Circuito Elétrico Macroscópico</title>
+<title>Simulador: Corrente Elétrica e Secção Reta</title>
 <style>
-body {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background: #1a1a2e;
-    font-family: Arial, sans-serif;
-    color: white;
+body { 
+    margin: 0; 
+    padding: 0; 
+    overflow: hidden; 
+    background: #1a1a2e; 
+    font-family: Arial, sans-serif; 
+    color: white; 
 }
-#sim-canvas {
-    display: block;
-    width: 100vw;
-    height: 100vh;
+#sim-canvas { 
+    display: block; 
+    width: 100vw; 
+    height: 100vh; 
 }
-.ui-layer {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: 10;
-    display: flex;
-    gap: 20px;
+.ui-layer { 
+    position: absolute; 
+    top: 20px; 
+    left: 20px; 
+    z-index: 10; 
+    display: flex; 
+    gap: 20px; 
 }
-.glass-panel {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    padding: 20px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    width: 300px;
+.glass-panel { 
+    background: rgba(255, 255, 255, 0.1); 
+    backdrop-filter: blur(10px); 
+    padding: 20px; 
+    border-radius: 10px; 
+    border: 1px solid rgba(255, 255, 255, 0.2); 
+    width: 360px; 
 }
-h3 {
-    margin-top: 0;
-    text-transform: uppercase;
-    font-size: 14px;
-    letter-spacing: 1px;
+h3 { 
+    margin-top: 0; 
+    text-transform: uppercase; 
+    font-size: 14px; 
+    letter-spacing: 1px; 
 }
-input[type=range] {
-    width: 100%;
-    margin-bottom: 15px;
-    accent-color: #e94560;
+input[type=range] { 
+    width: 100%; 
+    margin-bottom: 15px; 
+    accent-color: #e94560; 
 }
-button {
-    background: #e94560;
-    color: white;
-    border: none;
-    padding: 10px;
-    cursor: pointer;
-    border-radius: 5px;
-    width: 100%;
-    margin-bottom: 15px;
-    font-weight: bold;
-    transition: 0.3s;
+.formula-box { 
+    background: rgba(0, 0, 0, 0.4); 
+    padding: 15px; 
+    border-radius: 8px; 
+    margin-top: 15px; 
+    font-family: 'Courier New', Courier, monospace; 
+    font-size: 15px; 
 }
-button.btn-green { background: #43a047; }
-button:hover { filter: brightness(1.2); }
-
-.data-row {
-    display: flex;
-    justify-content: space-between;
-    margin: 10px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    padding-bottom: 5px;
-    font-size: 14px;
+.formula-box p { 
+    margin: 6px 0; 
 }
-.label-slider {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: bold;
+.highlight { 
+    color: #00e5ff; 
+    font-weight: bold; 
+}
+.highlight-yellow { 
+    color: #ffeb3b; 
+    font-weight: bold; 
+}
+.label-slider { 
+    display: block; 
+    margin-bottom: 8px; 
+    font-size: 14px; 
+    font-weight: bold; 
 }
 </style>
 </head>
 <body>
 <div class="ui-layer">
     <div class="glass-panel">
-        <h3>Controle do Circuito</h3>
+        <h3>Secção Reta e Equações</h3>
 
-        <button id="btn-switch" class="btn-green">Ligar Circuito (Fechar)</button>
+        <label class="label-slider">Elétrons cruzando (N): <span id="val-n" class="highlight-yellow">10</span> &times; 10¹⁸</label>
+        <input type="range" id="slider-n" min="1" max="50" value="10">
 
-        <label class="label-slider" for="ddp-slider">DDP da Bateria (V): <span id="ddp-val">12 V</span></label>
-        <input type="range" id="ddp-slider" min="0" max="24" value="12">
+        <label class="label-slider">Intervalo de Tempo (&Delta;t): <span id="val-t" class="highlight">1.0</span> s</label>
+        <input type="range" id="slider-t" min="0.1" max="5.0" step="0.1" value="1.0">
 
-        <div class="data-row"><span>Resistência da Lâmpada:</span><span>10 Ω</span></div>
-        <div class="data-row"><span>Corrente (i):</span><span id="current-val">0.00 A</span></div>
-        <div class="data-row"><span>Potência (Luminosidade):</span><span id="power-val">0.00 W</span></div>
+        <div class="formula-box">
+            <p>e = 1,6 &times; 10⁻¹⁹ C</p>
+            <hr style="border-color: rgba(255,255,255,0.2); margin: 12px 0;">
+            <p>Q = N &middot; e</p>
+            <p>Q = (<span id="eq-n">10</span> &times; 10¹⁸) &middot; (1,6 &times; 10⁻¹⁹)</p>
+            <p>Q = <span id="eq-q" class="highlight-yellow">1.60</span> C</p>
+            <hr style="border-color: rgba(255,255,255,0.2); margin: 12px 0;">
+            <p>i = Q / &Delta;t</p>
+            <p>i = <span id="eq-q2">1.60</span> / <span id="eq-t">1.0</span></p>
+            <p>i = <span id="eq-i" class="highlight">1.60</span> A</p>
+        </div>
     </div>
 </div>
-
 <canvas id="sim-canvas"></canvas>
-
 <script src="app.js"></script>
 </body>
 </html>
