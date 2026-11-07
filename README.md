@@ -25,7 +25,8 @@ Depois, acesse <http://localhost:8000>.
 
 - A página inicia com a chave aberta e os elétrons em movimento desordenado.
 - Clique em **Fechar chave CH** ou na chave desenhada no circuito para observar o movimento orientado dos elétrons.
-- Com a chave fechada, use as opções **Convencional** e **Elétrons** para mostrar ou ocultar as setas dos sentidos da corrente.
+- Ao fechar a chave, os dois sentidos ficam visíveis no circuito. Use **Convencional** ou **Elétrons reais** para alternar a representação das partículas na ampliação.
+- No modo **Convencional**, as partículas ficam avermelhadas, com sinal positivo, e seguem para a direita. No modo **Elétrons reais**, ficam azuis, com sinal negativo, e seguem para a esquerda.
 - Ajuste a **Velocidade visual** entre **0,25× e 2,5×** para acompanhar a animação.
 - Clique em **Abrir chave CH** para retornar ao estado sem corrente, com movimento desordenado.
 - Use **Reiniciar** para redistribuir os elétrons e abrir a chave, ou **Tela cheia** para ampliar a visualização.
@@ -33,10 +34,10 @@ Depois, acesse <http://localhost:8000>.
 
 ## Recursos
 
-- Ampliação do condutor com íons positivos fixos e 18 elétrons animados.
+- Ampliação do condutor com íons positivos fixos e 18 partículas animadas.
 - Comparação visual entre movimento desordenado e deriva orientada.
 - Circuito com bateria, fios de cobre e chave animada e interativa.
-- Setas independentes para corrente convencional e movimento dos elétrons.
+- Dois sentidos simultâneos no circuito fechado e seletor de representação das partículas na ampliação.
 - Painel com as relações `i = ΔQ / Δt`, `ΔQ = N · |e|` e `1 A = 1 C/s`.
 - Controles de velocidade visual, reinício e tela cheia.
 - Layout responsivo e Canvas com proporções preservadas ao redimensionar a janela.
@@ -44,7 +45,9 @@ Depois, acesse <http://localhost:8000>.
 
 ## Modelo didático e limitações
 
-A simulação é qualitativa: com a chave aberta, os elétrons apresentam movimento desordenado; com a chave fechada, são organizados em três pistas e se deslocam para a esquerda. Os vetores da corrente convencional apontam para o sentido oposto ao movimento dos elétrons.
+A simulação é qualitativa: com a chave aberta, os elétrons apresentam movimento desordenado; com a chave fechada, as partículas são organizadas em três pistas. O modo **Elétrons reais** representa elétrons negativos em deriva para a esquerda; o modo **Convencional** representa cargas positivas equivalentes para a direita.
+
+O seletor alterna entre duas representações da mesma corrente. A polaridade da bateria e o sentido físico da deriva dos elétrons permanecem os mesmos. As cargas positivas equivalentes são uma representação didática; os íons positivos da rede metálica continuam fixos no desenho.
 
 As equações do painel apresentam a definição de corrente e sua relação com a carga elétrica. O indicador mostra apenas `i = 0` ou `i > 0`, conforme o estado da chave; não há cálculo numérico de corrente, tensão ou potência.
 

@@ -2,92 +2,105 @@
 <html lang="pt-BR">
 
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#08101c">
-    <title>Corrente elétrica — laboratório virtual</title>
+    <title>Laboratório virtual — Corrente elétrica</title>
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
 </head>
 
 <body>
-    <header class="topbar">
-        <div class="brand">
-            <span class="brand-icon" aria-hidden="true">ϟ</span>
-            <div>
-                <span class="eyebrow">LABORATÓRIO VIRTUAL DE FÍSICA</span>
-                <h1>Corrente elétrica</h1>
-            </div>
+    <header class="topo">
+        <div>
+            <small>LABORATÓRIO VIRTUAL DE FÍSICA</small>
+            <h1>Corrente elétrica</h1>
         </div>
-        <div class="state-pill" id="statePill" aria-live="polite"><span class="state-dot"></span><span
-                id="stateText">CHAVE ABERTA</span></div>
+        <span class="situacao" id="situacao">CHAVE ABERTA</span>
     </header>
 
     <main class="layout">
-        <aside class="panel" aria-label="Controles da simulação">
-            <section class="section">
-                <h2>Controle do circuito</h2>
-                <button type="button" id="toggle" class="main-button" aria-pressed="false">
-                    <span class="button-symbol" aria-hidden="true">◯</span>
-                    <span id="toggleLabel">Fechar chave CH</span>
+        <aside class="painel">
+            <section>
+                <h2>Circuito</h2>
+                <button class="chave" id="chave" type="button" aria-pressed="false">
+                    Fechar chave CH
                 </button>
             </section>
 
-            <section class="section">
-                <h2>Sentido da corrente</h2>
-                <label class="choice red">
-                    <input type="checkbox" id="convencional" checked disabled>
-                    <span class="choice-arrow" aria-hidden="true">→</span>
-                    <span>Convencional <small>Do + para o −</small></span>
-                </label>
-                <label class="choice blue">
-                    <input type="checkbox" id="real" checked disabled>
-                    <span class="choice-arrow" aria-hidden="true">←</span>
-                    <span>Elétrons <small>Do − para o +</small></span>
-                </label>
+            <section>
+                <h2>Representação do movimento</h2>
+                <p>Escolha o modelo animado dentro do fio:</p>
+
+                <div class="modos" role="group" aria-label="Modo de representação">
+                    <button type="button" id="modoReal" class="modo ativo" aria-pressed="true" disabled>
+                        Elétrons reais
+                        <span>cargas negativas</span>
+                    </button>
+
+                    <button type="button" id="modoConvencional" class="modo" aria-pressed="false" disabled>
+                        Convencional
+                        <span>cargas positivas equivalentes</span>
+                    </button>
+                </div>
+
+                <p id="explicacao" class="explicacao" aria-live="polite">
+                    Sem corrente: os elétrons se movimentam desordenadamente.
+                </p>
             </section>
 
-            <section class="section formulas" aria-label="Equações da corrente elétrica">
-                <h2>Equações da aula</h2>
-                <div class="fraction-formula" aria-label="i igual a delta Q dividido por delta t">
-                    <span class="formula-i">i =</span>
-                    <span class="fraction"><span>ΔQ</span><span>Δt</span></span>
+            <section class="equacoes">
+                <h2>Intensidade da corrente</h2>
+                <div class="formula">
+                    <span>i =</span>
+                    <span class="fracao">
+                        <b>ΔQ</b>
+                        <b>Δt</b>
+                    </span>
                 </div>
-                <div class="formula-secondary">ΔQ = N · |e|</div>
-                <div class="formula-result" id="formulaResult" aria-live="polite">i = 0</div>
-                <p class="formula-units">1 A = 1 C/s</p>
+                <div class="formula-menor">ΔQ = N · |e|</div>
+                <strong id="resultado">i = 0</strong>
+                <p>1 ampère = 1 coulomb/segundo</p>
             </section>
 
-            <section class="section velocity">
-                <div class="velocity-head">
-                    <h2>Velocidade visual</h2><output for="speed" id="speedOutput">1,0×</output>
-                </div>
-                <input type="range" id="speed" min="0.25" max="2.5" value="1" step="0.25"
-                    aria-label="Velocidade visual da animação">
+            <section>
+                <label class="titulo-controle" for="velocidade">
+                    Velocidade visual
+                    <output id="valorVelocidade">1,0×</output>
+                </label>
+                <input type="range" id="velocidade" min="0.25" max="2.5" step="0.25" value="1">
             </section>
-            <p class="science-note">* Visualização idealizada: no metal real, a agitação térmica continua mesmo com
-                corrente.</p>
+
+            <p class="nota">
+                * O movimento perfeitamente alinhado é uma
+                simplificação visual: na realidade, os elétrons
+                continuam com movimento térmico.
+            </p>
         </aside>
 
-        <section class="simulation" id="simulation" aria-label="Visualização do circuito">
-            <div class="simulation-header">
-                <div><strong>Dentro do fio metálico</strong><span>Ampliação microscópica + circuito realista</span>
+        <section class="laboratorio" id="laboratorio">
+            <div class="barra">
+                <div>
+                    <strong>Fio de cobre ampliado</strong>
+                    <small>Rede metálica, cargas móveis, bateria e chave</small>
                 </div>
-                <div class="actions">
-                    <button type="button" id="reset">↻ Reiniciar</button>
-                    <button type="button" id="full">⛶ Tela cheia</button>
+                <div class="acoes">
+                    <button id="reiniciar" type="button">Reiniciar</button>
+                    <button id="telaCheia" type="button">Tela cheia</button>
                 </div>
             </div>
-            <div class="canvas-wrap" id="canvasWrap">
-                <canvas id="canvas"
-                    aria-label="Modelo interativo com íons de cobre e elétrons no interior de um condutor, bateria V e chave CH. Clique na chave para ligar ou desligar."
-                    tabindex="0"></canvas>
+
+            <div class="area" id="area">
+                <canvas id="canvas" tabindex="0" aria-label="Simulação do circuito com fio de cobre.
+          Clique na chave CH do desenho para abrir ou fechar.">
+                </canvas>
             </div>
-            <div class="legend">
-                <span><i class="ion-dot"></i> Íon metálico (+)</span>
-                <span><i class="electron-dot"></i> Elétron (−)</span>
-                <span><i class="vector-dot"></i> Vetor do elétron</span>
-                <span class="legend-tip">Clique na chave CH do desenho para acioná-la</span>
+
+            <div class="legenda">
+                <span><i class="ion"></i> Íons metálicos fixos</span>
+                <span id="legendaMovel">
+                    <i class="eletron"></i> Elétrons (−)
+                </span>
+                <span><i class="vetor"></i> Vetor de movimento</span>
             </div>
         </section>
     </main>

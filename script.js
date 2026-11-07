@@ -1,309 +1,740 @@
 
 'use strict';
 
-// Laboratório didático de corrente elétrica — JavaScript puro, sem dependências.
-// Sistema de coordenadas fixo para preservar as proporções em projetores e celulares.
-const $ = (id) => document.getElementById(id);
+const $ = id => document.getElementById(id);
 const canvas = $('canvas');
 const ctx = canvas.getContext('2d');
+
 const VIEW = { w: 1200, h: 760 };
-const circuit = { left: 205, right: 995, top: 528, bottom: 693 };
-const tube = { x: 90, y: 151, w: 1020, h: 235 };
-const state = {
-  closed: false, elapsed: 0, speed: 1, last: 0, dt: 0,
-  scale: 1, offsetX: 0, offsetY: 0, width: 0, height: 0, lever: 0
+const fio = { x: 90, y: 151, w: 1020, h: 235 };
+const circuito = {
+  esquerda: 205, direita: 995, cima: 528, baixo: 693
 };
-const particles = [];
-const TOTAL = 18;
-const random = (a, b) => a + Math.random() * (b - a);
 
-function resetParticles() {
-  particles.length = 0;
-  for (let i = 0; i < TOTAL; i++) {
-    const angle = random(-Math.PI, Math.PI);
-    particles.push({
-      x: random(38, tube.w - 38), y: random(35, tube.h - 35),
-      vx: Math.cos(angle), vy: Math.sin(angle),
-      lane: i % 3, turn: random(0.5, 2.0), factor: random(0.8, 1.2)
+const estado = {
+  fechado: false,
+  modo: 'real',
+  velocidade: 1,
+  tempo: 0,
+  ultimo: 0,
+  alavanca: 0,
+  largura: 0,
+  altura: 0,
+  escala: 1,
+  dx: 0,
+  dy: 0
+};
+
+const particulas = [];
+const total = 18;
+const sorteio = (a, b) => a + Math.random() * (b - a);
+
+// ==================================================
+// 1. CRIAÇÃO E ORGANIZAÇÃO DAS PARTÍCULAS
+// ==================================================
+
+function criarParticulas() {
+  particulas.length = 0;
+
+  for (let i = 0; i < total; i++) {
+    const angulo = sorteio(-Math.PI, Math.PI);
+
+    particulas.push({
+      x: sorteio(35, fio.w - 35),
+      y: sorteio(25, fio.h - 25),
+      vx: Math.cos(angulo),
+      vy: Math.sin(angulo),
+      pista: i % 3,
+      fator: sorteio(.8, 1.2),
+      mudar: sorteio(.4, 1.6)
     });
   }
 }
 
-function setCircuit(closed) {
-  state.closed = closed;
-  $('toggle').classList.toggle('on', closed);
-  $('toggle').setAttribute('aria-pressed', String(closed));
-  $('toggleLabel').textContent = closed ? 'Abrir chave CH' : 'Fechar chave CH';
-  $('toggle').querySelector('.button-symbol').textContent = closed ? '●' : '◯';
-  $('statePill').classList.toggle('on', closed);
-  $('stateText').textContent = closed ? 'CHAVE FECHADA' : 'CHAVE ABERTA';
-  $('convencional').disabled = !closed;
-  $('real').disabled = !closed;
-  $('formulaResult').classList.toggle('on', closed);
-  $('formulaResult').textContent = closed ? 'i > 0' : 'i = 0';
-  if (closed) {
-    // Representação idealizada: elétrons se alinham em três pistas e derivam à esquerda.
-    particles.forEach((p, i) => {
-      p.y = [42, 118, 194][p.lane];
-      p.x = 65 + Math.floor(i / 3) * 175 + p.lane * 16;
-      p.vx = -1; p.vy = 0;
-    });
+function organizarParticulas() {
+  particulas.forEach((p, i) => {
+    p.x = 65 + Math.floor(i / 3) * 175 + p.pista * 14;
+    p.y = [42, 118, 194][p.pista];
+  });
+}
+
+// ==================================================
+// 2. ALTERAÇÃO DO SENTIDO DA REPRESENTAÇÃO
+// ==================================================
+
+function selecionarModo(modo) {
+  if (!estado.fechado) return;
+
+  estado.modo = modo;
+
+  $('modoReal').classList.toggle('ativo', modo === 'real');
+
+  $('modoConvencional').classList.toggle(
+    'ativo', modo === 'convencional'
+  );
+
+  $('modoConvencional').classList.toggle(
+    'convencional', modo === 'convencional'
+  );
+
+  $('modoReal').setAttribute(
+    'aria-pressed', String(modo === 'real')
+  );
+
+  $('modoConvencional').setAttribute(
+    'aria-pressed', String(modo === 'convencional')
+  );
+
+  if (modo === 'real') {
+    $('explicacao').textContent =
+      'Elétrons (−) deslocam-se em média da direita para a esquerda.';
+
+    $('legendaMovel').innerHTML =
+      '<i class="eletron"></i> Elétrons (−)';
   } else {
-    particles.forEach(p => {
-      const angle = random(-Math.PI, Math.PI);
-      p.vx = Math.cos(angle); p.vy = Math.sin(angle);
-      p.turn = random(.5, 1.6);
-    });
+    $('explicacao').textContent =
+      'Modelo convencional: cargas positivas equivalentes ' +
+      'deslocam-se para a direita. Não são os elétrons.';
+
+    $('legendaMovel').innerHTML =
+      '<i class="carga-positiva"></i> Cargas equivalentes (+)';
   }
-  draw();
+
+  desenhar();
 }
 
-function update(dt) {
-  state.elapsed += dt * state.speed;
-  state.lever += (Number(state.closed) - state.lever) * Math.min(1, dt * 13);
-  const speed = 88 * dt * state.speed;
-  for (const p of particles) {
-    if (state.closed) {
-      p.x -= speed * 1.15;
-      if (p.x < 21) p.x = tube.w - 21;
+// ==================================================
+// 3. CHAVE DO CIRCUITO
+// ==================================================
+
+function definirChave(fechado) {
+  estado.fechado = fechado;
+
+  $('chave').textContent =
+    fechado ? 'Abrir chave CH' : 'Fechar chave CH';
+
+  $('chave').classList.toggle('ligado', fechado);
+
+  $('chave').setAttribute(
+    'aria-pressed', String(fechado)
+  );
+
+  $('situacao').textContent =
+    fechado ? 'CHAVE FECHADA' : 'CHAVE ABERTA';
+
+  $('situacao').classList.toggle('ligado', fechado);
+
+  $('modoReal').disabled = !fechado;
+  $('modoConvencional').disabled = !fechado;
+
+  $('resultado').textContent = fechado ? 'i > 0' : 'i = 0';
+  $('resultado').classList.toggle('ligado', fechado);
+
+  if (fechado) {
+    organizarParticulas();
+    selecionarModo(estado.modo);
+  } else {
+    particulas.forEach(p => {
+      const a = sorteio(-Math.PI, Math.PI);
+      p.vx = Math.cos(a);
+      p.vy = Math.sin(a);
+      p.mudar = sorteio(.4, 1.6);
+    });
+
+    $('explicacao').textContent =
+      'Sem corrente: os elétrons se movimentam desordenadamente.';
+
+    $('legendaMovel').innerHTML =
+      '<i class="eletron"></i> Elétrons (−)';
+  }
+
+  desenhar();
+}
+
+// ==================================================
+// 4. FÍSICA E ANIMAÇÃO
+// ==================================================
+
+function atualizar(dt) {
+  estado.tempo += dt * estado.velocidade;
+
+  estado.alavanca +=
+    (Number(estado.fechado) - estado.alavanca) *
+    Math.min(1, dt * 13);
+
+  const passo = 95 * dt * estado.velocidade;
+
+  for (const p of particulas) {
+    if (estado.fechado) {
+
+      // REAL: partículas negativas para a esquerda.
+      // CONVENCIONAL: cargas positivas equivalentes
+      // para a direita.
+      const direcao =
+        estado.modo === 'real' ? -1 : 1;
+
+      p.x += direcao * passo;
+
+      // Reaparecem na extremidade oposta,
+      // representando um fio contínuo.
+      if (p.x < 22) p.x = fio.w - 22;
+      if (p.x > fio.w - 22) p.x = 22;
+
     } else {
-      p.turn -= dt * state.speed;
-      if (p.turn <= 0) {
-        const angle = Math.atan2(p.vy, p.vx) + random(-1.1, 1.1);
-        p.vx = Math.cos(angle); p.vy = Math.sin(angle);
-        p.turn = random(.5, 2);
+
+      // Sem campo externo: movimento desordenado.
+      p.mudar -= dt * estado.velocidade;
+
+      if (p.mudar <= 0) {
+        const a = Math.atan2(p.vy, p.vx) +
+          sorteio(-1.2, 1.2);
+
+        p.vx = Math.cos(a);
+        p.vy = Math.sin(a);
+        p.mudar = sorteio(.4, 1.8);
       }
-      p.x += p.vx * speed * p.factor;
-      p.y += p.vy * speed * p.factor;
-      if (p.x < 23) { p.x = 23; p.vx = Math.abs(p.vx); }
-      if (p.x > tube.w - 23) { p.x = tube.w - 23; p.vx = -Math.abs(p.vx); }
-      if (p.y < 22) { p.y = 22; p.vy = Math.abs(p.vy); }
-      if (p.y > tube.h - 22) { p.y = tube.h - 22; p.vy = -Math.abs(p.vy); }
+
+      p.x += p.vx * passo * p.fator;
+      p.y += p.vy * passo * p.fator;
+
+      // Reflexões nas paredes internas do metal.
+      if (p.x < 22) {
+        p.x = 22;
+        p.vx = Math.abs(p.vx);
+      }
+
+      if (p.x > fio.w - 22) {
+        p.x = fio.w - 22;
+        p.vx = -Math.abs(p.vx);
+      }
+
+      if (p.y < 22) {
+        p.y = 22;
+        p.vy = Math.abs(p.vy);
+      }
+
+      if (p.y > fio.h - 22) {
+        p.y = fio.h - 22;
+        p.vy = -Math.abs(p.vy);
+      }
     }
   }
 }
 
-function line(x1, y1, x2, y2, color, width = 2) {
-  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
-  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke();
-}
-function rounded(x, y, w, h, r) {
-  ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
-}
-function circle(x, y, r, fill, stroke = null, sw = 1) {
-  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle = fill; ctx.fill();
-  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = sw; ctx.stroke(); }
-}
-function label(text, x, y, size = 19, color = '#eef8ff', weight = 700, align = 'left') {
-  ctx.font = `${weight} ${size}px system-ui,Arial,sans-serif`;
-  ctx.textAlign = align; ctx.textBaseline = 'middle'; ctx.fillStyle = color; ctx.fillText(text, x, y);
-}
-function arrow(x1, y1, x2, y2, color, width = 8) {
-  const theta = Math.atan2(y2 - y1, x2 - x1), head = 19;
-  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.shadowColor = color; ctx.shadowBlur = 12;
-  line(x1, y1, x2, y2, color, width);
-  ctx.beginPath(); ctx.moveTo(x2, y2);
-  ctx.lineTo(x2 - Math.cos(theta - .52) * head, y2 - Math.sin(theta - .52) * head);
-  ctx.lineTo(x2 - Math.cos(theta + .52) * head, y2 - Math.sin(theta + .52) * head);
-  ctx.closePath(); ctx.fillStyle = color; ctx.fill(); ctx.restore();
-}
-function vector(x, y, theta) {
-  const r = 20, length = 25;
-  arrow(x + Math.cos(theta) * r, y + Math.sin(theta) * r,
-    x + Math.cos(theta) * (r + length), y + Math.sin(theta) * (r + length), '#ffe178', 3.2);
-}
-function drawBackground() {
-  ctx.fillStyle = '#081726'; ctx.fillRect(0, 0, VIEW.w, VIEW.h);
-  const light = ctx.createRadialGradient(580, 250, 20, 580, 320, 850);
-  light.addColorStop(0, '#163047'); light.addColorStop(1, '#081523');
-  ctx.fillStyle = light; ctx.fillRect(0, 0, VIEW.w, VIEW.h);
+// ==================================================
+// 5. FUNÇÕES BÁSICAS DO CANVAS
+// ==================================================
+
+function linha(x1, y1, x2, y2, cor, largura = 2) {
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.strokeStyle = cor;
+  ctx.lineWidth = largura;
+  ctx.stroke();
 }
 
-function drawCopperTube() {
-  label('AMPLIAÇÃO DO FIO DE COBRE', 74, 48, 26, '#e7f6ff', 800);
-  label(state.closed ? 'MOVIMENTO ORIENTADO' : 'MOVIMENTO DESORDENADO', 1126, 48, 23,
-    state.closed ? '#77efc8' : '#ffd28c', 800, 'right');
-
-  // Envoltória cilíndrica do fio, com gradientes metálicos e duas pontas curvas.
-  const outer = ctx.createLinearGradient(0, 98, 0, 440);
-  outer.addColorStop(0, '#f4c894'); outer.addColorStop(.10, '#b7683b');
-  outer.addColorStop(.18, '#552f25'); outer.addColorStop(.55, '#9d532e');
-  outer.addColorStop(.84, '#522a22'); outer.addColorStop(.95, '#d2874d'); outer.addColorStop(1, '#f5c289');
-  ctx.save(); ctx.shadowColor = '#000b'; ctx.shadowBlur = 24;
-  rounded(56, 100, 1088, 332, 78); ctx.fillStyle = outer; ctx.fill(); ctx.restore();
-  rounded(56, 100, 1088, 332, 78); ctx.strokeStyle = '#e9ae75'; ctx.lineWidth = 4; ctx.stroke();
-
-  // Abertura didática mostrando a rede cristalina no metal.
-  const inner = ctx.createLinearGradient(0, tube.y, 0, tube.y + tube.h);
-  inner.addColorStop(0, '#1d2832'); inner.addColorStop(.5, '#2c3139'); inner.addColorStop(1, '#171e2a');
-  rounded(tube.x, tube.y, tube.w, tube.h, 36); ctx.fillStyle = inner; ctx.fill();
-  ctx.save(); rounded(tube.x, tube.y, tube.w, tube.h, 36); ctx.clip();
-  // Padrão cristalino (íons positivos fixos na estrutura do metal).
-  for (let row = 0; row < 3; row++)for (let col = 0; col < 9; col++) {
-    const x = tube.x + 66 + col * 112 + (row % 2) * 21;
-    const y = tube.y + 48 + row * 72;
-    if (col < 8) line(x + 18, y, x + 94, y, '#76594c99', 2);
-    if (row < 2) line(x, y + 18, x + 21, y + 54, '#76594c66', 2);
-  }
-  for (let row = 0; row < 3; row++)for (let col = 0; col < 9; col++) {
-    const x = tube.x + 66 + col * 112 + (row % 2) * 21;
-    const y = tube.y + 48 + row * 72;
-    const glow = ctx.createRadialGradient(x - 5, y - 6, 2, x, y, 24);
-    glow.addColorStop(0, '#ffd9a1'); glow.addColorStop(.5, '#bc7445'); glow.addColorStop(1, '#623e2e');
-    circle(x, y, 18, glow, '#e8ae7a', 1.6);
-    label('+', x, y - 1, 18, '#fff0d2', 800, 'center');
-  }
-  // Pistas luminosas apenas no estado idealizado com corrente.
-  if (state.closed) for (let i = 0; i < 3; i++) {
-    const y = tube.y + [42, 118, 194][i];
-    ctx.setLineDash([6, 13]); line(tube.x + 20, y, tube.x + tube.w - 20, y, '#5de2f930', 2);
-    ctx.setLineDash([]);
-  }
-  for (const p of particles) {
-    const x = tube.x + p.x, y = tube.y + p.y;
-    ctx.save(); ctx.shadowColor = '#48d9ff'; ctx.shadowBlur = 15;
-    circle(x, y, 14, '#54dafa', '#dbfaff', 2); ctx.restore();
-    circle(x, y, 9.5, '#136885');
-    line(x - 6, y, x + 6, y, '#e5ffff', 3);
-    vector(x, y, state.closed ? Math.PI : Math.atan2(p.vy, p.vx));
-  }
-  ctx.restore();
-  rounded(tube.x, tube.y, tube.w, tube.h, 36); ctx.strokeStyle = '#ffc48e'; ctx.lineWidth = 7; ctx.stroke();
-  // Reflexos superiores e inferiores dão volume ao fio metálico.
-  line(154, 112, 1047, 112, '#ffdcaa9e', 4);
-  line(153, 420, 1043, 420, '#ffd09a8b', 4);
-  label('ÍONS (+) FIXOS', 140, 460, 18, '#e5b68e', 750);
-  label('ELÉTRONS LIVRES (−)', 1063, 460, 18, '#8be9fc', 750, 'right');
+function caixa(x, y, w, h, r, cor) {
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+  ctx.fillStyle = cor;
+  ctx.fill();
 }
 
-function copperWire(x1, y1, x2, y2) {
-  // Fio de cobre com borda escura e reflexo longitudinal.
-  ctx.save(); ctx.lineCap = 'round';
-  line(x1, y1, x2, y2, '#4c261e', 24);
-  line(x1, y1, x2, y2, '#a95d35', 19);
-  line(x1, y1 - 3, x2, y2 - 3, '#e5a16c', 6);
-  line(x1, y1 + 6, x2, y2 + 6, '#733c2b', 4);
+function circulo(x, y, r, cor, contorno = null, espessura = 1) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, 2 * Math.PI);
+  ctx.fillStyle = cor;
+  ctx.fill();
+
+  if (contorno) {
+    ctx.strokeStyle = contorno;
+    ctx.lineWidth = espessura;
+    ctx.stroke();
+  }
+}
+
+function texto(s, x, y, tamanho = 20,
+  cor = '#eff8ff', peso = 700,
+  alinhar = 'left') {
+  ctx.font = `${peso} ${tamanho}px system-ui, Arial`;
+  ctx.fillStyle = cor;
+  ctx.textAlign = alinhar;
+  ctx.textBaseline = 'middle';
+  ctx.fillText(s, x, y);
+}
+
+function seta(x1, y1, x2, y2, cor, largura = 5) {
+  const a = Math.atan2(y2 - y1, x2 - x1);
+  const ponta = 18;
+
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  linha(x1, y1, x2, y2, cor, largura);
+
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+
+  ctx.lineTo(
+    x2 - ponta * Math.cos(a - .5),
+    y2 - ponta * Math.sin(a - .5)
+  );
+
+  ctx.lineTo(
+    x2 - ponta * Math.cos(a + .5),
+    y2 - ponta * Math.sin(a + .5)
+  );
+
+  ctx.closePath();
+  ctx.fillStyle = cor;
+  ctx.fill();
   ctx.restore();
 }
-function drawBattery() {
+
+function vetor(x, y, angulo) {
+  const a = 21;
+  const b = 46;
+
+  seta(
+    x + Math.cos(angulo) * a,
+    y + Math.sin(angulo) * a,
+    x + Math.cos(angulo) * b,
+    y + Math.sin(angulo) * b,
+    '#ffe175',
+    3
+  );
+}
+
+// ==================================================
+// 6. FIO METÁLICO AMPLIADO
+// ==================================================
+
+function desenharFioAmpliado() {
+  texto(
+    'AMPLIAÇÃO DO FIO METÁLICO',
+    72, 50, 26, '#e7f7ff', 850
+  );
+
+  let titulo = 'AGITAÇÃO DESORDENADA';
+
+  if (estado.fechado) {
+    titulo = estado.modo === 'real'
+      ? 'ELÉTRONS: PARA A ESQUERDA'
+      : 'CONVENÇÃO: PARA A DIREITA';
+  }
+
+  texto(
+    titulo, 1128, 50, 22,
+    estado.fechado ? '#82f2c9' : '#ffdc97',
+    850, 'right'
+  );
+
+  // Envoltória cilíndrica de cobre.
+  const metal = ctx.createLinearGradient(0, 98, 0, 434);
+  metal.addColorStop(0, '#ffcd92');
+  metal.addColorStop(.11, '#b56a3e');
+  metal.addColorStop(.21, '#623527');
+  metal.addColorStop(.58, '#ae5e32');
+  metal.addColorStop(.83, '#542a21');
+  metal.addColorStop(.94, '#c8844c');
+  metal.addColorStop(1, '#f7c68c');
+
+  ctx.save();
+  ctx.shadowBlur = 23;
+  ctx.shadowColor = '#000b';
+  caixa(56, 100, 1088, 332, 77, metal);
+  ctx.restore();
+
+  // Interior do fio.
+  const miolo = ctx.createLinearGradient(
+    0, fio.y, 0, fio.y + fio.h
+  );
+
+  miolo.addColorStop(0, '#202e3a');
+  miolo.addColorStop(.5, '#293641');
+  miolo.addColorStop(1, '#141f30');
+
+  caixa(fio.x, fio.y, fio.w, fio.h, 34, miolo);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(fio.x, fio.y, fio.w, fio.h, 34);
+  ctx.clip();
+
+  // Íons positivos FIXOS da rede cristalina.
+  for (let fila = 0; fila < 3; fila++) {
+    for (let col = 0; col < 9; col++) {
+      const x = fio.x + 66 + col * 112 + (fila % 2) * 21;
+      const y = fio.y + 48 + fila * 72;
+
+      if (col < 8) {
+        linha(x + 18, y, x + 91, y, '#9c724f44', 2);
+      }
+
+      const brilho = ctx.createRadialGradient(
+        x - 6, y - 6, 1, x, y, 21
+      );
+
+      brilho.addColorStop(0, '#ffe5b5');
+      brilho.addColorStop(.55, '#bd7d49');
+      brilho.addColorStop(1, '#5e392b');
+
+      circulo(x, y, 18, brilho, '#e7b07d', 1.5);
+      texto('+', x, y - 1, 20, '#fff2da', 850, 'center');
+    }
+  }
+
+  // Pistas ilustrativas da corrente organizada.
+  if (estado.fechado) {
+    for (const y of [42, 118, 194]) {
+      ctx.setLineDash([6, 12]);
+
+      linha(
+        fio.x + 20,
+        fio.y + y,
+        fio.x + fio.w - 20,
+        fio.y + y,
+        '#ffffff29',
+        2
+      );
+
+      ctx.setLineDash([]);
+    }
+  }
+
+  // Alternância da representação das cargas.
+  const convencao =
+    estado.fechado && estado.modo === 'convencional';
+
+  for (const p of particulas) {
+    const x = fio.x + p.x;
+    const y = fio.y + p.y;
+
+    ctx.save();
+    ctx.shadowBlur = 13;
+    ctx.shadowColor = convencao ? '#ff898e' : '#50dfff';
+
+    circulo(
+      x, y, 15,
+      convencao ? '#ff9b91' : '#61e0f4',
+      '#ffffff', 1.5
+    );
+
+    ctx.restore();
+
+    circulo(
+      x, y, 10,
+      convencao ? '#a03d48' : '#19637e'
+    );
+
+    texto(
+      convencao ? '+' : '−',
+      x, y, 20, '#ffffff', 900, 'center'
+    );
+
+    const direcao = estado.fechado
+      ? (convencao ? 0 : Math.PI)
+      : Math.atan2(p.vy, p.vx);
+
+    vetor(x, y, direcao);
+  }
+
+  ctx.restore();
+
+  // Borda e reflexos do fio metálico.
+  ctx.beginPath();
+  ctx.roundRect(fio.x, fio.y, fio.w, fio.h, 34);
+  ctx.strokeStyle = '#ffbd87';
+  ctx.lineWidth = 7;
+  ctx.stroke();
+
+  linha(152, 113, 1047, 113, '#ffe0ae91', 4);
+  linha(151, 421, 1044, 421, '#ffca8e8a', 4);
+
+  texto('ÍONS (+) FIXOS', 137, 460, 18, '#efb88e', 800);
+
+  texto(
+    convencao
+      ? 'CARGAS POSITIVAS EQUIVALENTES (+)'
+      : 'ELÉTRONS LIVRES (−)',
+    1067, 460, 18,
+    convencao ? '#ffa1a5' : '#83eaff',
+    800, 'right'
+  );
+}
+
+// ==================================================
+// 7. FIOS, BATERIA E CHAVE
+// ==================================================
+
+function fioDeCobre(x1, y1, x2, y2) {
+  ctx.save();
+  ctx.lineCap = 'round';
+
+  linha(x1, y1, x2, y2, '#48261e', 25);
+  linha(x1, y1, x2, y2, '#ae6239', 19);
+  linha(x1, y1 - 3, x2, y2 - 3, '#e8aa73', 6);
+  linha(x1, y1 + 6, x2, y2 + 6, '#6c392a', 4);
+
+  ctx.restore();
+}
+
+function bateria() {
   const x = 495, y = 657, w = 212, h = 71;
-  ctx.save(); ctx.shadowColor = '#000a'; ctx.shadowBlur = 14;
-  const metal = ctx.createLinearGradient(x, y, x, y + h);
-  metal.addColorStop(0, '#dbe5f2'); metal.addColorStop(.22, '#8796aa');
-  metal.addColorStop(.55, '#405368'); metal.addColorStop(.88, '#778ca3'); metal.addColorStop(1, '#dce5ed');
-  rounded(x, y, w, h, 14); ctx.fillStyle = metal; ctx.fill(); ctx.restore();
-  rounded(x, y, w, h, 14); ctx.strokeStyle = '#b8c7d6'; ctx.lineWidth = 3; ctx.stroke();
-  circle(x + 11, y + h / 2, 21, '#bdccdd', '#e4f2fc', 2);
-  circle(x + w - 11, y + h / 2, 21, '#4f6885', '#b0c0d0', 2);
-  label('+', x + 32, y + 19, 22, '#fff5d9', 900, 'center');
-  label('−', x + w - 32, y + 19, 22, '#e4efff', 900, 'center');
-  label('V', x + w / 2, y + h / 2 + 7, 40, '#f7fdff', 900, 'center');
-  label('BATERIA', x + w / 2, y + 92, 17, '#bdcce0', 800, 'center');
+  const brilho = ctx.createLinearGradient(x, y, x, y + h);
+
+  brilho.addColorStop(0, '#d6e4ef');
+  brilho.addColorStop(.5, '#40556d');
+  brilho.addColorStop(1, '#bacde1');
+
+  caixa(x, y, w, h, 14, brilho);
+
+  circulo(x + 12, y + 35, 21, '#bdcbd9', '#e9f2fd', 2);
+  circulo(x + w - 12, y + 35, 21, '#506a83', '#d1e4f5', 2);
+
+  texto('+', x + 37, y + 21, 25, '#fff6db', 900, 'center');
+  texto('−', x + w - 37, y + 21, 25, '#e4f1ff', 900, 'center');
+  texto('V', x + w / 2, y + 42, 42, '#ffffff', 900, 'center');
+  texto('BATERIA', x + w / 2, y + 92, 17, '#aec6dd', 800, 'center');
 }
-function drawSwitch() {
-  const x = circuit.right, upper = 577, lower = 634;
-  circle(x, upper, 12, '#dec5a5', '#613c2c', 3);
-  circle(x, lower, 12, '#dec5a5', '#613c2c', 3);
-  circle(x, upper, 5, '#513627'); circle(x, lower, 5, '#513627');
-  const tipX = x + 51 * (1 - state.lever);
-  const tipY = upper - 8 * (1 - state.lever);
-  ctx.save(); ctx.lineCap = 'round'; ctx.shadowColor = state.closed ? '#65eac4' : '#ffce87'; ctx.shadowBlur = 10;
-  line(x, lower, tipX, tipY, state.closed ? '#8df5c6' : '#f8c98f', 13); ctx.restore();
-  circle(x, lower, 7, '#fff0d1');
-  label('CH', x + 93, 600, 32, '#f9edda', 900, 'center');
+
+function chaveNoDesenho() {
+  const x = circuito.direita;
+  const y1 = 577, y2 = 634;
+
+  circulo(x, y1, 12, '#e7cda7', '#6a4031', 2);
+  circulo(x, y2, 12, '#e7cda7', '#6a4031', 2);
+
+  const xf = x + 51 * (1 - estado.alavanca);
+  const yf = y1 - 8 * (1 - estado.alavanca);
+
+  ctx.save();
+  ctx.lineCap = 'round';
+
+  linha(
+    x, y2, xf, yf,
+    estado.fechado ? '#8cf2c7' : '#fad19a',
+    12
+  );
+
+  ctx.restore();
+
+  circulo(x, y2, 6, '#fff0dc');
+  texto('CH', x + 95, 604, 32, '#ffedcf', 900, 'center');
 }
-function drawCircuit() {
-  const { left, right, top, bottom } = circuit;
-  // Lentes tracejadas conectam o zoom ao trecho ampliado do circuito.
+
+function desenharCircuito() {
+  const c = circuito;
+
+  // Linhas que ligam a ampliação ao circuito.
   ctx.setLineDash([8, 11]);
-  line(192, 432, 192, 508, '#91cbdd51', 2);
-  line(1008, 432, 1008, 508, '#91cbdd51', 2);
+  linha(191, 433, 191, 507, '#9de4ef62', 2);
+  linha(1008, 433, 1008, 507, '#9de4ef62', 2);
   ctx.setLineDash([]);
-  copperWire(left, top, right, top);
-  copperWire(left, top, left, bottom);
-  copperWire(left, bottom, 495, bottom);
-  copperWire(707, bottom, right, bottom);
-  copperWire(right, top, right, 566);
-  copperWire(right, 645, right, bottom);
-  drawBattery(); drawSwitch();
-  // Sobre o fio superior, os vetores de corrente têm sentidos opostos.
-  if (state.closed) {
-    if ($('convencional').checked) {
-      arrow(385, 497, 777, 497, '#ff657b', 9);
-      label('i', 798, 497, 28, '#ff7a91', 900);
-    }
-    if ($('real').checked) {
-      arrow(775, 564, 386, 564, '#6fa8ff', 9);
-      label('e⁻', 355, 565, 26, '#87b8ff', 900, 'center');
-    }
+
+  // Fios metálicos do circuito principal.
+  fioDeCobre(c.esquerda, c.cima, c.direita, c.cima);
+  fioDeCobre(c.esquerda, c.cima, c.esquerda, c.baixo);
+  fioDeCobre(c.esquerda, c.baixo, 495, c.baixo);
+  fioDeCobre(707, c.baixo, c.direita, c.baixo);
+  fioDeCobre(c.direita, c.cima, c.direita, 565);
+  fioDeCobre(c.direita, 646, c.direita, c.baixo);
+
+  bateria();
+  chaveNoDesenho();
+
+  // Os dois sentidos ficam sempre visíveis
+  // quando o circuito está fechado.
+  if (estado.fechado) {
+    // Sentido convencional, vermelho.
+    seta(379, 494, 781, 494, '#ff7185', 8);
+    texto('i', 809, 494, 29, '#ff8b9c', 900);
+
+    // Fluxo dos elétrons, azul.
+    seta(781, 563, 378, 563, '#73a9ff', 8);
+    texto('e⁻', 350, 565, 27, '#92bfff', 900, 'center');
   } else {
-    label('SEM CORRENTE', 597, 500, 22, '#ffd29b', 800, 'center');
+    texto(
+      'SEM CORRENTE RESULTANTE',
+      600, 492, 22, '#ffda9b', 850, 'center'
+    );
   }
 }
 
-function draw() {
-  if (!state.width || !state.height) return;
-  const dpr = Math.min(2.5, window.devicePixelRatio || 1);
+// ==================================================
+// 8. REDIMENSIONAMENTO E LOOP DE ANIMAÇÃO
+// ==================================================
+
+function desenhar() {
+  if (!estado.largura || !estado.altura) return;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.fillStyle = '#081726'; ctx.fillRect(0, 0, state.width, state.height);
-  ctx.translate(state.offsetX, state.offsetY);
-  ctx.scale(state.scale, state.scale);
-  drawBackground(); drawCopperTube(); drawCircuit();
+  ctx.fillStyle = '#081726';
+  ctx.fillRect(0, 0, estado.largura, estado.altura);
+
+  ctx.translate(estado.dx, estado.dy);
+  ctx.scale(estado.escala, estado.escala);
+
+  const fundo = ctx.createRadialGradient(
+    580, 230, 0, 580, 370, 850
+  );
+
+  fundo.addColorStop(0, '#173048');
+  fundo.addColorStop(1, '#071422');
+
+  ctx.fillStyle = fundo;
+  ctx.fillRect(0, 0, VIEW.w, VIEW.h);
+
+  desenharFioAmpliado();
+  desenharCircuito();
 }
-function resize() {
-  const bounds = $('canvasWrap').getBoundingClientRect();
-  state.width = Math.max(200, bounds.width); state.height = Math.max(200, bounds.height);
-  const dpr = Math.min(2.5, window.devicePixelRatio || 1);
-  canvas.width = Math.round(state.width * dpr); canvas.height = Math.round(state.height * dpr);
-  state.scale = Math.min(state.width / VIEW.w, state.height / VIEW.h);
-  state.offsetX = (state.width - VIEW.w * state.scale) / 2;
-  state.offsetY = (state.height - VIEW.h * state.scale) / 2;
-  draw();
+
+function redimensionar() {
+  const r = $('area').getBoundingClientRect();
+
+  estado.largura = Math.max(r.width, 200);
+  estado.altura = Math.max(r.height, 200);
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  canvas.width = Math.round(estado.largura * dpr);
+  canvas.height = Math.round(estado.altura * dpr);
+
+  estado.escala = Math.min(
+    estado.largura / VIEW.w,
+    estado.altura / VIEW.h
+  );
+
+  estado.dx =
+    (estado.largura - VIEW.w * estado.escala) / 2;
+
+  estado.dy =
+    (estado.altura - VIEW.h * estado.escala) / 2;
+
+  desenhar();
 }
-function frame(now) {
-  const dt = state.last ? Math.min(.045, (now - state.last) / 1000) : 0;
-  state.last = now; update(dt); draw(); requestAnimationFrame(frame);
+
+function quadro(agora) {
+  const dt = estado.ultimo
+    ? Math.min(.045, (agora - estado.ultimo) / 1000)
+    : 0;
+
+  estado.ultimo = agora;
+
+  atualizar(dt);
+  desenhar();
+
+  requestAnimationFrame(quadro);
 }
-function canvasPosition(event) {
-  const box = canvas.getBoundingClientRect();
+
+// ==================================================
+// 9. INTERATIVIDADE
+// ==================================================
+
+function posicao(evento) {
+  const r = canvas.getBoundingClientRect();
+
   return {
-    x: (event.clientX - box.left - state.offsetX) / state.scale,
-    y: (event.clientY - box.top - state.offsetY) / state.scale
+    x: (evento.clientX - r.left - estado.dx) / estado.escala,
+    y: (evento.clientY - r.top - estado.dy) / estado.escala
   };
 }
-function isSwitch(x, y) { return x > 955 && x < 1135 && y > 555 && y < 656; }
-canvas.addEventListener('pointerdown', e => {
-  const { x, y } = canvasPosition(e);
-  if (isSwitch(x, y)) setCircuit(!state.closed);
+
+function sobreChave(x, y) {
+  return x > 952 && x < 1135 && y > 554 && y < 655;
+}
+
+$('chave').addEventListener('click', () => {
+  definirChave(!estado.fechado);
 });
-canvas.addEventListener('pointermove', e => {
-  const { x, y } = canvasPosition(e);
-  canvas.style.cursor = isSwitch(x, y) ? 'pointer' : 'default';
+
+$('modoReal').addEventListener('click', () => {
+  selecionarModo('real');
 });
-canvas.addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setCircuit(!state.closed); }
+
+$('modoConvencional').addEventListener('click', () => {
+  selecionarModo('convencional');
 });
-$('toggle').addEventListener('click', () => setCircuit(!state.closed));
-$('convencional').addEventListener('change', draw);
-$('real').addEventListener('change', draw);
-$('speed').addEventListener('input', e => {
-  state.speed = Number(e.target.value);
-  $('speedOutput').textContent = state.speed.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '×';
+
+$('velocidade').addEventListener('input', e => {
+  estado.velocidade = Number(e.target.value);
+
+  $('valorVelocidade').textContent =
+    estado.velocidade.toLocaleString(
+      'pt-BR', { maximumFractionDigits: 2 }
+    ) + '×';
 });
-$('reset').addEventListener('click', () => {
-  resetParticles(); state.elapsed = 0; setCircuit(false);
+
+$('reiniciar').addEventListener('click', () => {
+  estado.modo = 'real';
+  criarParticulas();
+  estado.tempo = 0;
+  definirChave(false);
+
+  $('modoReal').classList.add('ativo');
+
+  $('modoConvencional').classList.remove(
+    'ativo', 'convencional'
+  );
+
+  $('modoReal').setAttribute('aria-pressed', 'true');
+  $('modoConvencional').setAttribute('aria-pressed', 'false');
 });
-$('full').addEventListener('click', async () => {
+
+$('telaCheia').addEventListener('click', async () => {
   try {
-    if (document.fullscreenElement) await document.exitFullscreen();
-    else await $('simulation').requestFullscreen();
-  } catch { alert('Não foi possível entrar em tela cheia. Tente F11.'); }
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await $('laboratorio').requestFullscreen();
+    }
+  } catch {
+    alert('O navegador não permitiu tela cheia. Tente F11.');
+  }
 });
+
 document.addEventListener('fullscreenchange', () => {
-  $('full').textContent = document.fullscreenElement ? '⛶ Sair' : '⛶ Tela cheia';
-  setTimeout(resize, 50);
+  $('telaCheia').textContent = document.fullscreenElement
+    ? 'Sair da tela cheia'
+    : 'Tela cheia';
+
+  setTimeout(redimensionar, 50);
 });
-window.addEventListener('resize', resize);
-if (window.ResizeObserver) new ResizeObserver(resize).observe($('canvasWrap'));
-resetParticles(); setCircuit(false); resize(); requestAnimationFrame(frame);
+
+canvas.addEventListener('pointerdown', e => {
+  const p = posicao(e);
+
+  if (sobreChave(p.x, p.y)) {
+    definirChave(!estado.fechado);
+  }
+});
+
+canvas.addEventListener('pointermove', e => {
+  const p = posicao(e);
+
+  canvas.style.cursor =
+    sobreChave(p.x, p.y) ? 'pointer' : 'default';
+});
+
+canvas.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    definirChave(!estado.fechado);
+  }
+});
+
+window.addEventListener('resize', redimensionar);
+
+if (window.ResizeObserver) {
+  new ResizeObserver(redimensionar).observe($('area'));
+}
+
+// Inicialização
+criarParticulas();
+definirChave(false);
+redimensionar();
+requestAnimationFrame(quadro);
