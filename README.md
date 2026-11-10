@@ -1,149 +1,98 @@
-# Laboratório Virtual de Eletricidade: Física e Programação
+# Laboratório Virtual de Eletricidade & Eletrodinâmica
 
-![Status](https://img.shields.io/badge/Status-Em_Desenvolvimento-green)
+![Status](https://img.shields.io/badge/Status-Conclu%C3%ADdo-brightgreen)
 ![Tecnologia](https://img.shields.io/badge/Tecnologia-HTML5%20%7C%20CSS3%20%7C%20JavaScript-orange)
-![Renderização](https://img.shields.io/badge/Renderiza%C3%A7%C3%A3o-Canvas_API-blue)
+![Renderização](https://img.shields.io/badge/Renderiza%C3%A7%C3%A3o-Canvas_API_Nativo-blue)
+![Instituição](https://img.shields.io/badge/Institui%C3%A7%C3%A3o-IFC_Rio_do_Sul-green)
 
-Simulador educacional para explorar a **corrente elétrica em condutores metálicos**, conectando a representação de um circuito à ampliação do interior de um fio de cobre. O estudante pode acionar a chave, observar o movimento das cargas e comparar o **sentido convencional da corrente** com o **sentido de deriva dos elétrons**.
+Simulador educacional e laboratório interativo desenvolvido para o ensino de **Eletricidade e Eletrodinâmica** no **Instituto Federal Catarinense (IFC) — Campus Rio do Sul**, concebido para projeção em sala de aula ou estudo individual.
 
-O projeto segue a proposta dos [Laboratórios Virtuais de Física e Programação](https://github.com/GarrardFontanive/Fisica-ResistenciaAr): utilizar **Metodologias Ativas** e **Tecnologia Educacional** para aproximar conceitos de Física e práticas de programação no Ensino Médio Técnico. A iniciativa de referência é desenvolvida no **Instituto Federal Catarinense (IFC) — Campus Rio do Sul**.
+O projeto foi projetado para caber perfeitamente na tela de projetores e computadores sem cortes ou necessidade de rolagem vertical, com visual de laboratório didático de física e suporte a modo claro/escuro.
 
-## O projeto
+---
 
-Uma dúvida frequente no estudo da eletricidade é por que os elétrons e a corrente convencional têm sentidos opostos. Outra é imaginar que, ao abrir um circuito, todos os elétrons deixam de se mover.
+## 🎯 Roteiro de Aula e Módulos
 
-O laboratório permite discutir essas questões por meio de duas visualizações conectadas: um **circuito com bateria e chave CH** e uma **ampliação do condutor**, com íons positivos fixos e partículas móveis. A interação ajuda a diferenciar movimento desordenado, deriva orientada e convenção de sentido da corrente.
+Baseado na apresentação pedagógica do curso (`Aula/Introdução ao curso de eletricidade 2.pptx`), o laboratório está organizado em **4 módulos práticos**:
 
-### Objetivos de aprendizagem
+### 01. Materiais & Elétrons (Slides 8, 9, 10 e 18)
+- **Estrutura Atômica e Rede Metálica:** Visualização dos íons metálicos dispostos em rede cristalina tridimensional e o mar de elétrons livres em movimento.
+- **Comparação de Materiais:**
+  - **Cobre ($Cu$, $Z=29$):** Excelente condutor ($\rho \approx 1{,}68 \times 10^{-8}\ \Omega\cdot\text{m}$).
+  - **Alumínio ($Al$):** Bom condutor leve ($\rho \approx 2{,}65 \times 10^{-8}\ \Omega\cdot\text{m}$).
+  - **Aço / Nicromo:** Alta resistividade ($\rho \approx 1{,}50 \times 10^{-7}\ \Omega\cdot\text{m}$), colisões intensas.
+  - **Vidro (Isolante):** Elétrons fortemente aprisionados, sem portadores livres para corrente contínua.
+- **Agitação Térmica vs. Deriva:**
+  - Sem DDP ($U = 0\text{ V}$): agitação térmica caótica com vetores de velocidade em todas as direções ($\vec{v}_{\text{méd}} = 0$).
+  - Com DDP ($U > 0\text{ V}$): surge o campo elétrico $\vec{E}$ e a velocidade de deriva ($\vec{v}_d$) orientando as flechas de velocidade dos elétrons em direção ao polo positivo, com fluxo contínuo.
+- **Efeito Joule:** Demonstração microscópica das colisões dos elétrons com os íons da rede, aumentando a vibração e convertendo energia elétrica em calor.
 
-- Diferenciar agitação térmica e movimento de deriva dos elétrons.
-- Relacionar a abertura e o fechamento da chave à existência de corrente resultante.
-- Comparar o sentido convencional com o deslocamento dos elétrons em um metal.
-- Interpretar as relações entre quantidade de carga, número de portadores e intervalo de tempo.
-- Identificar o que uma representação didática simplifica em relação ao fenômeno físico.
+### 02. Circuito Elétrico, Leis de Ohm & Medições (Slides 13 a 16)
+- **Circuito Esquemático:**
+  - Fonte DC com ajuste contínuo de Tensão ($U$ de $0\text{ a }24\text{ V}$).
+  - Carga com ajuste de Resistência ($R$ de $2\text{ a }24\ \Omega$).
+  - Chave CH acionável por clique no circuito, botão ou tecla <kbd>C</kbd>.
+  - Lâmpada incandescente cujo filamento aquece e irradia brilho conforme $P = U \cdot i = R \cdot i^2$.
+- **Instrumentação em Tempo Real:**
+  - **Voltímetro** em paralelo e **Amperímetro** em série ($i = U / R$).
+  - Medição de potência ($P$) e carga acumulada ($\Delta Q$).
+- **Seção Transversal Reta ($\Delta S$):**
+  - Corte ampliado com plano $\Delta S$ e sensor que contabiliza a carga acumulada $\Delta Q = N \cdot |e|$.
+  - Alternância entre **Elétrons reais ($-$)** e **Sentido convencional ($+$)**.
+- **Gráfico $i \times t$ (Slide 15):** Exibição da reta de corrente contínua com área sombreada representativa da carga $\Delta Q = i \cdot \Delta t$.
 
-## Como a simulação funciona
+### 03. Aparelhos do Cotidiano & Efeito Joule (Slides 2 a 7 e 18)
+Classificação pedagógica dos aparelhos conforme o conteúdo do curso:
+1. **Aparelho Resistivo (Efeito Joule):** Chuveiro elétrico / ebulidor com espiral de nicromo aquecendo água dentro do recipiente de vidro, convecção térmica de bolhas e termômetro graduado ($Q = m \cdot c \cdot \Delta T$).
+2. **Motor Elétrico:** Conversão em movimento mecânico de rotação (ventilador), com ímãs de estator (polos N e S), linhas de campo magnético $\vec{B}$, torque $\tau = i \cdot A \cdot B$ e hélice em rotação dinâmica.
+3. **Lâmpada Incandescente:** Filamento de tungstênio a $\sim 2500\text{ }^\circ\text{C}$ no vácuo com balanço de rendimento (95% calor e 5% luz visível).
 
-| Estado ou modo | Representação na ampliação | Movimento mostrado |
-| --- | --- | --- |
-| **Chave aberta** | Elétrons azuis com sinal negativo | Desordenado, sem corrente resultante |
-| **Chave fechada · Elétrons reais** | Elétrons azuis com sinal negativo | Deriva para a esquerda |
-| **Chave fechada · Convencional** | Cargas positivas equivalentes, avermelhadas | Deslocamento para a direita |
+### 04. DDP, Pássaro no Fio & Segurança Humana (Slides 11, 12 e 17)
+- **O Pássaro no Fio:**
+  - *Pés no mesmo fio:* $V_A = V_B \implies \Delta V = 0\text{ V}$. A corrente segue pelo condutor de cobre e não passa pelo corpo do pássaro.
+  - *Dois fios distintos:* $\Delta V = 120\text{ V}$. Há descarga elétrica através do corpo da ave.
+- **Simulador de Choque Humano (Slide 17):**
+  - Tensão de contato ($12\text{ V}$, $127\text{ V}$, $220\text{ V}$, $1000\text{ V}$).
+  - Resistência do corpo: **Pele Seca** ($\approx 100\text{ k}\Omega$) versus **Pele Molhada** ($\approx 1\text{ k}\Omega$).
+  - Cálculo instantâneo da corrente de choque $i = U / R_{\text{corpo}}$ em miliamperes ($\text{mA}$).
+  - Régua de efeitos fisiológicos (Imperceptível $\to$ Formigamento $\to$ Tetanização $\to$ Fibrilação $\to$ Parada).
+  - Coração com batimento que entra em tremor de fibrilação na faixa crítica.
 
-Ao fechar a chave, **os dois sentidos aparecem simultaneamente no circuito**. O seletor altera a representação das partículas na ampliação: a polaridade da bateria e o sentido físico da deriva dos elétrons permanecem os mesmos.
+---
 
-As cargas positivas móveis do modo convencional representam uma corrente equivalente. **Os íons positivos da rede metálica continuam fixos no desenho.**
+## ⌨️ Atalhos de Teclado para a Aula
 
-### Funcionalidades atuais
+| Tecla | Função |
+| :---: | :--- |
+| <kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd>, <kbd>4</kbd> | Alterna diretamente entre os 4 experimentos |
+| <kbd>Espaço</kbd> | Pausa ou continua a animação |
+| <kbd>C</kbd> | Abre ou fecha a chave do circuito (CH) no Experimento 02 |
+| <kbd>F</kbd> | Entra ou sai do modo de projeção em Tela Cheia |
+| <kbd>R</kbd> | Reinicia contadores de carga e temperatura |
+| <kbd>H</kbd> ou <kbd>?</kbd> | Abre o painel rápido de atalhos |
 
-- Ampliação do fio com rede de íons e **18 partículas animadas**.
-- Chave acionada pelo painel, pelo desenho ou pelo teclado.
-- Seleção entre as representações **Elétrons reais** e **Convencional**.
-- Atualização da legenda, dos sinais das cargas e dos vetores de movimento.
-- Controle de velocidade visual entre **0,25× e 2,5×**.
-- Botões para reiniciar a simulação e entrar em tela cheia.
-- Interface responsiva, com adaptação do Canvas ao tamanho da área disponível.
+---
 
-## Fundamentos físicos
+## 💻 Como Executar
 
-O painel apresenta a relação entre a carga que atravessa uma seção do condutor e o intervalo de tempo considerado:
-
-$$
-i = \frac{\Delta Q}{\Delta t}
-\qquad
-\Delta Q = N \cdot |e|
-$$
-
-| Grandeza | Significado | Unidade |
-| --- | --- | --- |
-| $i$ | Corrente média no intervalo considerado | Ampère (A) |
-| $\Delta Q$ | Módulo da carga que atravessa a seção | Coulomb (C) |
-| $\Delta t$ | Intervalo de tempo | Segundo (s) |
-| $N$ | Número de elétrons que atravessam a seção | Contagem, sem unidade |
-| $\lvert e \rvert$ | Módulo da carga do elétron, aproximadamente $1{,}6 \times 10^{-19}$ C | Coulomb (C) |
-
-Assim, **1 A corresponde à passagem de 1 C de carga por segundo**.
-
-Na versão atual, essas equações servem como referência conceitual. O indicador mostra **`i = 0`** ou **`i > 0`**, conforme o estado da chave. A contagem de cargas e o cálculo numérico da corrente ainda são propostas de evolução.
-
-## Como executar
-
-O simulador utiliza tecnologias web nativas e funciona diretamente no navegador, sem instalação de dependências ou etapa de compilação.
+O projeto é 100% nativo (HTML5, CSS3 e JavaScript ES6+) via **Canvas 2D API**, sem dependências externas e com funcionamento offline imediato.
 
 1. Clone o repositório:
-
    ```bash
    git clone https://github.com/GarrardFontanive/Fisica_Eletricidade.git
    cd Fisica_Eletricidade
    ```
 
-2. Abra o arquivo **`index.html`** em um navegador moderno, mantendo `script.js` e `style.css` na mesma pasta.
+2. Abra o arquivo `index.html` em qualquer navegador moderno.
 
-Se preferir utilizar um servidor local e tiver Python 3 instalado, execute na pasta do projeto:
-
+Ou inicie com Python:
 ```bash
 python3 -m http.server 8000
 ```
+Acesse `http://localhost:8000`.
 
-Depois, acesse [localhost:8000](http://localhost:8000).
+---
 
-### Controles
+## 👨‍🏫 Autoria e Créditos
 
-| Controle | Ação |
-| --- | --- |
-| **Fechar / Abrir chave CH** | Alterna o estado do circuito |
-| **Chave CH no desenho** | Permite acionar a chave diretamente no Canvas |
-| **Elétrons reais / Convencional** | Escolhe a representação da ampliação; disponível com a chave fechada |
-| **Velocidade visual** | Ajusta a rapidez da animação |
-| **Reiniciar** | Redistribui as partículas, abre a chave e seleciona o modo de elétrons |
-| **Tela cheia** | Amplia a área de visualização, conforme o suporte do navegador |
-| **Enter ou Espaço** | Aciona a chave quando o Canvas está em foco |
-
-## Sugestão de uso em aula
-
-1. **Observar:** iniciar com a chave aberta e discutir por que existe movimento de elétrons sem corrente resultante.
-2. **Prever e testar:** pedir aos estudantes que indiquem os sentidos esperados antes de fechar a chave e comparar as duas representações.
-3. **Relacionar à equação:** propor situações com diferentes quantidades de carga e intervalos de tempo, calculando a corrente e discutindo o significado de ampère.
-
-## Tecnologias e organização
-
-| Tecnologia | Aplicação |
-| --- | --- |
-| **HTML5** | Estrutura semântica da interface e controles |
-| **CSS3** | Layout responsivo, estados dos botões e identidade visual |
-| **JavaScript puro** | Estado do circuito, interação e movimento das partículas |
-| **Canvas API 2D** | Desenho do condutor, das cargas, dos vetores e do circuito |
-| **`requestAnimationFrame`** | Atualização da animação com base no tempo entre quadros |
-
-O desenho e a lógica de movimento são implementados no próprio projeto, sem bibliotecas externas de física ou renderização.
-
-```text
-.
-├── .gitignore     # Exclusões de materiais de apoio e arquivos locais
-├── README.md      # Apresentação, fundamentos e instruções
-├── index.html     # Estrutura da interface e elemento Canvas
-├── style.css      # Estilos e layout responsivo
-└── script.js      # Estado do circuito, animação e controles
-```
-
-## Modelo didático e limitações
-
-A visualização é **qualitativa**: quantidade de partículas, dimensões e velocidades não estão em escala física. O controle de velocidade altera apenas a animação; ele não ajusta a tensão da bateria nem calcula a intensidade da corrente.
-
-Com a chave fechada, as partículas são alinhadas em três pistas para destacar o movimento orientado. Em um metal real, a agitação térmica continua sobreposta à deriva. Os íons são mantidos fixos no desenho, e a simulação não calcula suas vibrações, colisões, aquecimento ou Efeito Joule.
-
-## Próximos passos
-
-As propostas abaixo ainda não estão implementadas:
-
-- [ ] **Seção transversal do fio:** destacar uma seção e contar as cargas que a atravessam.
-- [ ] **Corrente calculada:** medir o intervalo de tempo e relacionar a contagem à equação $i = \Delta Q / \Delta t$.
-- [ ] **Gráfico de carga por tempo:** acompanhar o acúmulo de carga que atravessa a seção ao longo da animação.
-- [ ] **Agitação térmica com deriva:** representar os dois movimentos simultaneamente no modo de elétrons.
-- [ ] **Efeito Joule:** explorar colisões e transferência de energia para a rede metálica em uma evolução do modelo.
-
-## Materiais de apoio e autoria
-
-PDFs, apresentações PowerPoint e configurações locais do editor ficam fora do versionamento. O repositório reúne o código do simulador e sua documentação.
-
-Desenvolvido por **[Garrard Fontanive](https://github.com/GarrardFontanive)**.
+Desenvolvido por **[Garrard Fontanive](https://github.com/GarrardFontanive)** no âmbito do projeto de Laboratórios Virtuais de Física e Programação do **Instituto Federal Catarinense (IFC)**.
