@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#101a25">
+    <meta name="theme-color" content="#1e2530">
 
-    <title>Laboratório de Eletricidade | Aula Interativa</title>
+    <title>Laboratório de Eletricidade | IFC - Aula Interativa</title>
 
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
@@ -15,315 +15,274 @@
 <body>
     <div class="app">
 
-        <!-- CABEÇALHO -->
+        <!-- CABEÇALHO COMPACTO -->
         <header class="header">
             <div class="identity">
                 <span class="identity-mark" aria-hidden="true">φ</span>
-
                 <div>
-                    <span class="eyebrow">
-                        FÍSICA · LABORATÓRIO INTERATIVO
-                    </span>
-                    <strong>Eletricidade</strong>
+                    <span class="eyebrow">IFC · LABORATÓRIO DE FÍSICA</span>
+                    <strong>Eletricidade & Eletrodinâmica</strong>
                 </div>
             </div>
 
-            <div class="header-actions">
-                <span class="lesson">Aula demonstrativa</span>
-
-                <button class="quiet-button" id="pauseBtn" type="button" aria-pressed="false">
-                    Ⅱ Pausar
+            <!-- TABS DOS CAPÍTULOS -->
+            <nav class="chapters" aria-label="Capítulos da aula">
+                <button class="chapter active" data-page="0" type="button">
+                    <span>1</span> Materiais & Elétrons
                 </button>
+                <button class="chapter" data-page="1" type="button">
+                    <span>2</span> Circuito & Leis de Ohm
+                </button>
+                <button class="chapter" data-page="2" type="button">
+                    <span>3</span> Aparelhos do Cotidiano
+                </button>
+                <button class="chapter" data-page="3" type="button">
+                    <span>4</span> DDP & Choque Elétrico
+                </button>
+            </nav>
 
-                <button class="quiet-button" id="fullscreenBtn" type="button">
+            <div class="header-actions">
+                <button class="tool-btn" id="themeToggleBtn" type="button" title="Alternar tema claro/escuro para o projetor">
+                    ☀️ Claro
+                </button>
+                <button class="tool-btn" id="pauseBtn" type="button" title="Pausar / Continuar (Espaço)">
+                    ⏸ Pausar
+                </button>
+                <button class="tool-btn" id="fullscreenBtn" type="button" title="Projetar em tela cheia (F)">
                     ⛶ Projetar
+                </button>
+                <button class="tool-btn" id="helpBtn" type="button" title="Atalhos de teclado (H ou ?)">
+                    ?
                 </button>
             </div>
         </header>
 
-        <!-- NAVEGAÇÃO -->
-        <nav class="chapters" aria-label="Páginas do laboratório">
+        <!-- BARRA DE TÍTULO DA CENA COMPACTA -->
+        <div class="scene-bar">
+            <span class="scene-badge" id="sceneBadge">EXP 01 / 04</span>
+            <h1 class="scene-title" id="sceneTitle">Como os elétrons se movem em um condutor?</h1>
+            <span class="scene-hint" id="sceneSubtitle">Compare os materiais, aplique uma ddp e observe a velocidade de deriva.</span>
+            <span class="nav-hint">Teclas 1, 2, 3, 4 navegam · Espaço pausa</span>
+        </div>
 
-            <button class="chapter active" data-page="0" type="button" aria-current="page">
-                <span>01</span>
-                Materiais e elétrons
-            </button>
+        <!-- CANVAS PRINCIPAL -->
+        <div class="viewport" id="viewport">
+            <canvas id="labCanvas" role="img" aria-label="Simulação gráfica de física"></canvas>
+            <div class="viewport-stamp" id="stamp">MODELO DIDÁTICO INTERATIVO</div>
+        </div>
 
-            <button class="chapter" data-page="1" type="button">
-                <span>02</span>
-                Circuito elétrico
-            </button>
-
-            <button class="chapter" data-page="2" type="button">
-                <span>03</span>
-                O pássaro no fio
-            </button>
-
-            <span class="nav-guide">
-                Use 1, 2, 3 para navegar
-            </span>
-        </nav>
-
-        <main>
-
-            <!-- TÍTULO DA CENA -->
-            <div class="scene-heading">
-                <div>
-                    <p class="scene-index" id="sceneIndex">
-                        EXPERIMENTO 01 / 03
-                    </p>
-
-                    <h1 id="sceneTitle">
-                        Como os elétrons se movem em um metal?
-                    </h1>
-
-                    <p class="scene-subtitle" id="sceneSubtitle">
-                        Observe o interior do sólido. Compare materiais
-                        e aplique uma diferença de potencial.
-                    </p>
-                </div>
-
-                <span class="scene-tag" id="sceneTag">
-                    VISTA MICROSCÓPICA
-                </span>
-            </div>
-
-            <!-- CANVAS PRINCIPAL -->
-            <div class="viewport" id="viewport">
-                <canvas id="labCanvas" role="img" aria-label="Visualização interativa de eletricidade">
-                </canvas>
-
-                <div class="viewport-stamp" id="stamp">
-                    MODELO DIDÁTICO · FORA DE ESCALA
+        <!-- ==================================================== -->
+        <!-- PAINEL 1: MATERIAIS, ELÉTRONS E EFEITO JOULE          -->
+        <!-- ==================================================== -->
+        <section class="control-panel" id="controlsMaterials" aria-label="Controles de Materiais">
+            <div class="control-col">
+                <span class="col-title">Material do Condutor</span>
+                <div class="choice-group" id="materialChoices">
+                    <button class="choice active" data-material="cobre" type="button">Cobre (Cu)</button>
+                    <button class="choice" data-material="aluminio" type="button">Alumínio (Al)</button>
+                    <button class="choice" data-material="aco" type="button">Aço / Nicromo</button>
+                    <button class="choice" data-material="vidro" type="button">Vidro (Isolante)</button>
                 </div>
             </div>
 
-            <!-- ====================================== -->
-            <!-- PÁGINA 1: MATERIAIS E ELÉTRONS         -->
-            <!-- ====================================== -->
-
-            <section class="control-panel" id="controlsMaterials" aria-label="Comparação de materiais">
-
-                <div class="control-main">
-
-                    <div class="control-label">
-                        Selecione o material
-                    </div>
-
-                    <div class="choice-group" id="materialChoices">
-
-                        <button class="choice active" data-material="cobre" type="button" aria-pressed="true">
-                            Cobre
-                        </button>
-
-                        <button class="choice" data-material="aluminio" type="button" aria-pressed="false">
-                            Alumínio
-                        </button>
-
-                        <button class="choice" data-material="aco" type="button" aria-pressed="false">
-                            Aço
-                        </button>
-
-                        <button class="choice" data-material="vidro" type="button" aria-pressed="false">
-                            Vidro
-                        </button>
-                    </div>
-
-                    <button class="primary-button" id="fieldBtn" type="button" aria-pressed="false">
-                        Aplicar tensão
-                    </button>
+            <div class="control-col">
+                <span class="col-title">Diferença de Potencial (DDP)</span>
+                <div class="slider-row">
+                    <label for="matVoltageSlider">Tensão (U): <strong id="matVoltageVal">12 V</strong></label>
+                    <input type="range" id="matVoltageSlider" min="0" max="24" step="2" value="12">
                 </div>
-
-                <div class="insight">
-
-                    <div class="insight-label">
-                        COMPORTAMENTO DO MATERIAL
-                    </div>
-
-                    <strong id="materialTitle">
-                        Cobre · excelente condutor
-                    </strong>
-
-                    <p id="materialDescription">
-                        Há elétrons móveis. Sem tensão aplicada,
-                        a agitação não produz corrente resultante.
-                    </p>
-
-                    <p class="material-rho" id="materialRho">
-                        ρ ≈ 1,68 × 10⁻⁸ Ω·m
-                    </p>
-
+                <div class="quick-actions">
+                    <button class="action-btn" id="matFieldToggle" type="button">⚡ Tensão Ativa</button>
+                    <button class="action-btn" id="matJouleToggle" type="button">🔥 Efeito Joule</button>
                 </div>
+            </div>
 
-                <div class="formula-panel">
-                    <span>RELAÇÕES FÍSICAS</span>
-
-                    <strong>R = ρ · L/A</strong>
-
-                    <small>
-                        Mesma geometria e tensão:
-                        menor resistividade → maior corrente.
-                    </small>
-                </div>
-
-            </section>
-
-            <!-- ====================================== -->
-            <!-- PÁGINA 2: CIRCUITO ELÉTRICO            -->
-            <!-- ====================================== -->
-
-            <section class="control-panel" id="controlsCircuit" aria-label="Controles do circuito" hidden>
-
-                <div class="control-main">
-
-                    <div class="control-label">
-                        Chave CH
+            <div class="readouts-col">
+                <span class="col-title">Valores em Tempo Real</span>
+                <div class="readouts-compact">
+                    <div class="readout-item">
+                        <span>Resistividade</span>
+                        <strong id="matRhoReadout">ρ ≈ 1,68×10⁻⁸ Ω·m</strong>
                     </div>
-
-                    <button class="primary-button" id="switchBtn" type="button" aria-pressed="false">
-                        Fechar circuito
-                    </button>
-
-                    <div class="control-label secondary-label">
-                        Representação animada
+                    <div class="readout-item">
+                        <span>Vel. de Deriva</span>
+                        <strong id="matVdReadout">vd ≈ 1.0 mm/s</strong>
                     </div>
-
-                    <div class="choice-group">
-
-                        <button id="electronsBtn" class="choice active" type="button" aria-pressed="true">
-                            Elétrons (−)
-                        </button>
-
-                        <button id="conventionalBtn" class="choice" type="button" aria-pressed="false">
-                            Convencional (+)
-                        </button>
-
+                    <div class="readout-item">
+                        <span>Estado</span>
+                        <strong id="matStateReadout">Deriva sob Campo E</strong>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <div class="insight">
+        <!-- ==================================================== -->
+        <!-- PAINEL 2: CIRCUITO ELÉTRICO, LEI DE OHM E MEDIÇÕES    -->
+        <!-- ==================================================== -->
+        <section class="control-panel" id="controlsCircuit" aria-label="Controles do Circuito" hidden>
+            <div class="control-col">
+                <span class="col-title">Controle do Circuito</span>
+                <div class="quick-actions">
+                    <button class="primary-btn" id="switchBtn" type="button">⚡ Chave CH: Aberta [C]</button>
+                    <button class="action-btn" id="resetCounterBtn" type="button">↺ Zerar Cargas ΔQ</button>
+                </div>
+                <div class="choice-group">
+                    <button id="electronsBtn" class="choice active" type="button">Elétrons Reais (−)</button>
+                    <button id="conventionalBtn" class="choice" type="button">Sentido Convencional (+)</button>
+                </div>
+            </div>
 
-                    <div class="insight-label">
-                        OBSERVE NO FIO
+            <div class="control-col">
+                <span class="col-title">Ajuste de Parâmetros</span>
+                <div class="slider-row">
+                    <label for="circuitVoltageSlider">Tensão Fonte (U): <strong id="circuitVoltageVal">12.0 V</strong></label>
+                    <input type="range" id="circuitVoltageSlider" min="0" max="24" step="1" value="12">
+                </div>
+                <div class="slider-row">
+                    <label for="circuitResistanceSlider">Resistência (R): <strong id="circuitResistanceVal">6.0 Ω</strong></label>
+                    <input type="range" id="circuitResistanceSlider" min="2" max="24" step="1" value="6">
+                </div>
+            </div>
+
+            <div class="readouts-col">
+                <span class="col-title">Instrumentação (Leis de Ohm: i = U / R)</span>
+                <div class="readouts-compact">
+                    <div class="readout-item">
+                        <span>Voltímetro (U)</span>
+                        <strong id="readoutU">0.0 V</strong>
                     </div>
+                    <div class="readout-item">
+                        <span>Amperímetro (i)</span>
+                        <strong id="readoutI">0.00 A</strong>
+                    </div>
+                    <div class="readout-item">
+                        <span>Potência (P = U·i)</span>
+                        <strong id="readoutP">0.0 W</strong>
+                    </div>
+                    <div class="readout-item">
+                        <span>Carga na Seção (ΔQ)</span>
+                        <strong id="readoutQ">0.0 C</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                    <strong id="circuitTitle">
-                        Chave aberta · i = 0
-                    </strong>
+        <!-- ==================================================== -->
+        <!-- PAINEL 3: APARELHOS DO COTIDIANO                     -->
+        <!-- ==================================================== -->
+        <section class="control-panel" id="controlsAppliance" aria-label="Controles de Aparelhos" hidden>
+            <div class="control-col">
+                <span class="col-title">Tipo de Aparelho</span>
+                <div class="choice-group" id="applianceChoices">
+                    <button class="choice active" data-appliance="resistivo" type="button">♨️ Chuveiro (Resistivo)</button>
+                    <button class="choice" data-appliance="motor" type="button">🌀 Motor (Ventilador)</button>
+                    <button class="choice" data-appliance="lampada" type="button">💡 Lâmpada Incandescente</button>
+                </div>
+            </div>
 
-                    <p id="circuitDescription">
-                        As partículas continuam em agitação,
-                        mas não há fluxo líquido de carga.
-                    </p>
+            <div class="control-col">
+                <span class="col-title">Potência & Rede Elétrica</span>
+                <div class="choice-group">
+                    <button class="choice active" data-grid="127" type="button">127 V</button>
+                    <button class="choice" data-grid="220" type="button">220 V</button>
+                    <button class="action-btn active" id="applianceToggleBtn" type="button">Ligado</button>
+                </div>
+                <div class="slider-row">
+                    <label for="appliancePowerSlider">Potência: <strong id="appliancePowerVal">100%</strong></label>
+                    <input type="range" id="appliancePowerSlider" min="0" max="100" step="5" value="100">
+                </div>
+            </div>
 
+            <div class="readouts-col">
+                <span class="col-title">Conversão Energética</span>
+                <div class="readouts-compact">
+                    <div class="readout-item">
+                        <span>Potência Ativa</span>
+                        <strong id="appliancePowerReadout">5500 W</strong>
+                    </div>
+                    <div class="readout-item">
+                        <span>Corrente (i)</span>
+                        <strong id="applianceCurrentReadout">43.3 A</strong>
+                    </div>
+                    <div class="readout-item">
+                        <span>Conversão</span>
+                        <strong id="applianceEnergyReadout">100% Calor (Efeito Joule)</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================== -->
+        <!-- PAINEL 4: DDP, PÁSSARO NO FIO E CHOQUE HUMANO        -->
+        <!-- ==================================================== -->
+        <section class="control-panel" id="controlsSafety" aria-label="Controles de Choque e DDP" hidden>
+            <div class="control-col">
+                <span class="col-title">Selecione o Experimento</span>
+                <div class="choice-group">
+                    <button id="modeBirdBtn" class="choice active" type="button">🐦 Pássaro na Linha</button>
+                    <button id="modeHumanBtn" class="choice" type="button">⚡ Choque no Corpo Humano</button>
                 </div>
 
-                <div class="formula-panel">
-
-                    <span>INTENSIDADE DE CORRENTE</span>
-
-                    <strong>i = ΔQ / Δt</strong>
-
-                    <small>
-                        ΔQ = N · |e| &nbsp; · &nbsp; 1 A = 1 C/s
-                    </small>
-
-                </div>
-            </section>
-
-            <!-- ====================================== -->
-            <!-- PÁGINA 3: O PÁSSARO NO FIO             -->
-            <!-- ====================================== -->
-
-            <section class="control-panel" id="controlsBird" aria-label="Controles do pássaro" hidden>
-
-                <div class="control-main">
-
-                    <div class="control-label">
-                        Onde o pássaro pousa?
-                    </div>
-
-                    <div class="choice-group">
-
-                        <button id="oneWireBtn" class="choice active" type="button" aria-pressed="true">
-                            Mesmo fio
-                        </button>
-
-                        <button id="twoWireBtn" class="choice" type="button" aria-pressed="false">
-                            Dois fios
-                        </button>
-
-                    </div>
-
-                    <div class="control-label secondary-label">
-                        Potencial dos contatos
-                    </div>
-
-                    <div class="choice-group">
-
-                        <button id="equalBtn" class="choice" type="button" disabled aria-pressed="false">
-                            Iguais
-                        </button>
-
-                        <button id="differentBtn" class="choice active" type="button" disabled aria-pressed="true">
-                            Diferentes
-                        </button>
-
-                    </div>
-
+                <!-- SUBMENU DO PÁSSARO -->
+                <div id="birdControlsGroup" class="sub-options">
+                    <button id="oneWireBtn" class="action-btn active" type="button">Mesmo Fio (VA = VB, Sem Choque)</button>
+                    <button id="twoWireBtn" class="action-btn" type="button">Dois Fios (ΔV = 120 V, Choque)</button>
                 </div>
 
-                <div class="insight">
-
-                    <div class="insight-label">
-                        O QUE ACONTECE?
+                <!-- SUBMENU DO HUMANO -->
+                <div id="humanControlsGroup" class="sub-options" hidden>
+                    <div class="choice-group" id="humanVoltageChoices">
+                        <button class="choice" data-volt="12" type="button">12 V</button>
+                        <button class="choice active" data-volt="127" type="button">127 V</button>
+                        <button class="choice" data-volt="220" type="button">220 V</button>
+                        <button class="choice" data-volt="1000" type="button">1000 V</button>
                     </div>
-
-                    <strong id="birdTitle">
-                        Pés no mesmo fio
-                    </strong>
-
-                    <p id="birdDescription">
-                        Os contatos estão praticamente no mesmo potencial:
-                        não há corrente relevante pelo corpo.
-                    </p>
-
+                    <div class="choice-group" id="humanSkinChoices">
+                        <button class="choice active" data-skin="seca" type="button">Pele Seca (~100 kΩ)</button>
+                        <button class="choice" data-skin="molhada" type="button">Pele Molhada (~1 kΩ)</button>
+                    </div>
                 </div>
+            </div>
 
-                <div class="formula-panel">
-
-                    <span>DIFERENÇA DE POTENCIAL</span>
-
-                    <strong id="birdEquation">
-                        ΔV ≈ 0 V
-                    </strong>
-
-                    <small id="birdEquationCaption">
-                        i<sub>corpo</sub> ≈
-                        ΔV / R<sub>corpo</sub> ≈ 0
-                    </small>
-
+            <div class="readouts-col readouts-span2">
+                <span class="col-title">Diagnóstico de Corrente & Efeito Fisiológico (Slide 17)</span>
+                <div class="safety-status-bar">
+                    <div class="safety-badge" id="safetyBadge">RISCO: NENHUM (ΔV ≈ 0 V)</div>
+                    <div class="safety-info" id="safetyInfoText">Pés no mesmo fio condutor: VA = VB. A corrente segue pelo fio de cobre.</div>
                 </div>
+                <div class="danger-meter-row">
+                    <div class="meter-step" id="mStep0">&lt; 1 mA<br><small>Imperceptível</small></div>
+                    <div class="meter-step" id="mStep1">1 - 5 mA<br><small>Formigamento</small></div>
+                    <div class="meter-step" id="mStep2">10 - 20 mA<br><small>Tetanização</small></div>
+                    <div class="meter-step" id="mStep3">50 - 100 mA<br><small>Fibrilação</small></div>
+                    <div class="meter-step" id="mStep4">&gt; 1 A<br><small>Parada / Queimadura</small></div>
+                </div>
+            </div>
+        </section>
 
-            </section>
+    </div>
 
-        </main>
-
-        <!-- RODAPÉ -->
-        <footer class="footer">
-
-            <span>
-                Laboratório para projeção em aula ·
-                HTML, CSS e JavaScript nativos
-            </span>
-
-            <span id="footerNote">
-                O movimento é ilustrativo, não representa
-                a escala real.
-            </span>
-
-        </footer>
-
+    <!-- MODAL DE ATALHOS -->
+    <div class="modal-backdrop" id="helpModal" hidden>
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Atalhos de Teclado para a Aula</h2>
+                <button class="modal-close" id="modalCloseBtn" type="button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <ul class="shortcuts-grid">
+                    <li><kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd>, <kbd>4</kbd> : Alternar capítulos</li>
+                    <li><kbd>Espaço</kbd> : Pausar / Continuar simulação</li>
+                    <li><kbd>C</kbd> : Abrir / Fechar a chave CH (Cap. 2)</li>
+                    <li><kbd>F</kbd> : Entrar / Sair da tela cheia</li>
+                    <li><kbd>R</kbd> : Reiniciar contadores</li>
+                    <li><kbd>H</kbd> ou <kbd>?</kbd> : Abrir esta ajuda</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn" id="modalOkBtn" type="button">Fechar</button>
+            </div>
+        </div>
     </div>
 </body>
 
