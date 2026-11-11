@@ -87,6 +87,10 @@ const state = {
   matFieldActive: true,
   matJoule: false,
   ionEnergy: Array.from({ length: 90 }, () => 0),
+  showTracer: true,
+  showVectors: true,
+  samplePhotoImg: null,
+  tracerTrail: [],       // {x, y} em coords do canvas
 
   // Cap 2
   closed: false,
@@ -182,12 +186,12 @@ function updateMaterialsUI() {
   $('matJouleToggle').classList.toggle('active', state.matJoule);
 
   $('matRhoReadout').textContent = m.rhoVal;
-  const vd = (state.matFieldActive && state.matVoltage > 0 && m.kind === 'metal')
-    ? (state.matVoltage / 12 * m.drift).toFixed(2)
-    : '0.00';
-  $('matVdReadout').textContent = `${vd} mm/s`;
+  const hasF = state.matFieldActive && state.matVoltage > 0 && m.kind === 'metal';
+  const vd = hasF ? (state.matVoltage / 12 * m.drift).toFixed(2) : '0.00';
+  $('matVdReadout').textContent = `${vd} mm/s (Lenta)`;
+  if ($('matVthReadout')) $('matVthReadout').textContent = 'vth ≈ 10⁵ m/s (Rápida)';
 
-  $('matStateReadout').textContent = (state.matFieldActive && state.matVoltage > 0 && m.kind === 'metal')
+  $('matStateReadout').textContent = hasF
     ? 'Deriva sob Campo E'
     : 'Agitação Caótica (U = 0)';
 }
@@ -490,22 +494,94 @@ function drawMaterials() {
     }
   }
 
-  // Mar de Elétrons Livres com FLECHAS NÍTIDAS
+  // Mar de Elétrons Livres com FLECHAS NÍTIDAS, traçador e legenda
   if (isMetal) {
-    dots.forEach(p => {
+    // 1. Rastro do elétron traçador (atrás dos elétrons)
+    if (state.showTracer && state.tracerTrail.length > 1) {
+      ctx.save();
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.globalAlpha = 0.65;
+      ctx.beginPath();
+      state.tracerTrail.forEach((pt, i) => {
+        const tx = ix + pt.x * iw;
+        const ty = iy + pt.y * ih;
+        if (i === 0) ctx.moveTo(tx, ty); else ctx.lineTo(tx, ty);
+      });
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    // 2. Elétrons individuais
+    dots.forEach((p, idx) => {
       const x = ix + p.x * iw;
       const y = iy + p.y * ih;
-      electron(x, y, 8, false);
+      const isTracer = idx === 0 && state.showTracer;
 
-      // Vetor velocidade da partícula
-      const angle = Math.atan2(p.vy, p.vx);
-      const arrowColor = hasField ? '#38bdf8' : '#f59e0b';
-      arrow(x, y, angle, arrowColor, 20, 2);
+      // Círculo do elétron
+      electron(x, y, isTracer ? 11 : 7.5, false);
+      if (isTracer) {
+        // Anel dourado destacado
+        ctx.save();
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(x, y, 15, 0, TAU);
+        ctx.stroke();
+        ctx.restore();
+        text('traçador', x, y - 20, 9, '#fbbf24', 700, 'center');
+      }
+
+      // Vetores de velocidade
+      if (state.showVectors) {
+        const thermalAngle = Math.atan2(p.vy, p.vx);
+        const len = isTracer ? 34 : 20;
+        const col = isTracer ? '#fbbf24' : (hasField ? '#94a3b8' : '#f59e0b');
+        // Vetor térmico
+        arrow(x, y, thermalAngle, col, len, isTracer ? 3 : 1.8);
+
+        // Vetor de deriva (separado, em azul) só com campo
+        if (hasField) {
+          arrow(x, y, Math.PI, '#38bdf8', isTracer ? 32 : 22, isTracer ? 3 : 2);
+        }
+      }
     });
+
+    // 3. Legenda dos vetores (canto inferior esquerdo da janela)
+    if (state.showVectors) {
+      const lx = ix + 10, ly = iy + ih - 28;
+      // Linha térmica
+      ctx.save();
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + 28, ly); ctx.stroke();
+      text('agitação térmica (rápida)', lx + 32, ly + 4, 10, '#f59e0b', 700);
+      if (hasField) {
+        ctx.strokeStyle = '#38bdf8';
+        ctx.beginPath(); ctx.moveTo(lx, ly + 14); ctx.lineTo(lx + 28, ly + 14); ctx.stroke();
+        text('deriva vd → polo (+)  (lenta)', lx + 32, ly + 18, 10, '#38bdf8', 700);
+      }
+      ctx.restore();
+    }
+
   } else {
     capsule(bx + bw / 2 - 200, by + bh / 2 - 25, 400, 50, 'SEM ELÉTRONS LIVRES NESTE ISOLANTE', '#fff', '#1e293b');
   }
   ctx.restore();
+
+  // Foto da amostra real (canto superior direito da janela interna)
+  if (state.samplePhotoImg) {
+    const pw = 170, ph = 110;
+    const px = ix + iw - pw - 8, py = iy + 8;
+    ctx.save();
+    ctx.drawImage(state.samplePhotoImg, px, py, pw, ph);
+    rect(px, py, pw, ph, 6, null, '#d48b55', 2);
+    text('AMOSTRA REAL', px + pw / 2, py + ph + 12, 10, '#d48b55', 750, 'center');
+    ctx.restore();
+  }
 
   // Terminal Positivo (+) à esquerda e Negativo (−) à direita quando com DDP
   if (hasField && isMetal) {
@@ -1081,20 +1157,24 @@ function animate(dt) {
   // 1. Materiais (Capítulo 1)
   const m = materials[state.material];
   const hasField = state.matFieldActive && state.matVoltage > 0 && m.kind === 'metal';
-  const driftV = (state.matVoltage / 12) * m.drift * 0.15;
+  // Deriva: proporcional à tensão, bem mais lenta que a térmica visual
+  const driftV = (state.matVoltage / 12) * m.drift * 0.08;
 
-  dots.forEach(p => {
+  dots.forEach((p, idx) => {
+    // Agitação térmica: mudança de direção bem frequente (caótico)
     p.turnTimer -= dt;
     if (p.turnTimer < 0) {
-      p.turnTimer = rand(0.2, 0.9);
-      p.vx = rand(-1, 1);
-      p.vy = rand(-1, 1);
+      p.turnTimer = rand(0.05, 0.25);   // ← muda direção ~4–20× por segundo
+      const ang = rand(0, TAU);
+      p.vx = Math.cos(ang);
+      p.vy = Math.sin(ang);
     }
 
-    // Se com ddp, velocidade resultante tem forte componente de deriva para a esquerda
-    let netVx = p.vx * p.speed * 0.08;
-    let netVy = p.vy * p.speed * 0.08;
+    // Velocidade térmica RÁPIDA visualmente (contraste didático com deriva lenta)
+    let netVx = p.vx * p.speed * 0.38;
+    let netVy = p.vy * p.speed * 0.38;
 
+    // Com campo: adiciona componente de deriva (muito menor que térmica)
     if (hasField) {
       netVx -= driftV;
     }
@@ -1103,15 +1183,19 @@ function animate(dt) {
     p.y += netVy * dt;
 
     // WRAP-AROUND SUAVE: Quando sai na esquerda, reentra na direita (circuito contínuo!)
-    if (p.x < 0.02) {
-      p.x = 0.98;
+    if (p.x < 0.01) {
+      p.x = 0.99;
       p.y = rand(0.08, 0.92);
     }
-    if (p.x > 0.98) {
-      p.x = 0.02;
+    if (p.x > 0.99) { p.x = 0.01; }
+    if (p.y < 0.03) { p.y = 0.03; p.vy = Math.abs(p.vy); }
+    if (p.y > 0.97) { p.y = 0.97; p.vy = -Math.abs(p.vy); }
+
+    // Rastro do elétron traçador (dots[0])
+    if (idx === 0 && state.showTracer && state.page === 0) {
+      state.tracerTrail.push({ vx: p.vx, vy: p.vy, x: p.x, y: p.y });
+      if (state.tracerTrail.length > 60) state.tracerTrail.shift();
     }
-    if (p.y < 0.04) { p.y = 0.04; p.vy = -p.vy; }
-    if (p.y > 0.96) { p.y = 0.96; p.vy = -p.vy; }
   });
 
   // Dissipação de energia térmica dos íons
@@ -1222,6 +1306,7 @@ $('themeToggleBtn').addEventListener('click', () => {
 document.querySelectorAll('[data-material]').forEach(btn => {
   btn.addEventListener('click', () => {
     state.material = btn.dataset.material;
+    state.tracerTrail = [];   // limpa rastro ao trocar material
     updateMaterialsUI();
     render();
   });
@@ -1425,6 +1510,30 @@ window.addEventListener('resize', resize);
 if ('ResizeObserver' in window) {
   new ResizeObserver(resize).observe($('viewport'));
 }
+
+// ── Cap 1: Traçador, Vetores e Foto da Amostra ──
+$('tracerToggleBtn').addEventListener('click', () => {
+  state.showTracer = !state.showTracer;
+  state.tracerTrail = [];
+  $('tracerToggleBtn').classList.toggle('active', state.showTracer);
+});
+
+$('vectorsToggleBtn').addEventListener('click', () => {
+  state.showVectors = !state.showVectors;
+  $('vectorsToggleBtn').classList.toggle('active', state.showVectors);
+});
+
+$('samplePhotoInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => { state.samplePhotoImg = img; };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
 
 // Inicialização
 setPage(0);
