@@ -76,12 +76,24 @@
         <!-- ==================================================== -->
         <section class="control-panel" id="controlsMaterials" aria-label="Controles de Materiais">
             <div class="control-col">
-                <span class="col-title">Material do Condutor</span>
+                <span class="col-title">Material do Condutor & Amostra</span>
                 <div class="choice-group" id="materialChoices">
                     <button class="choice active" data-material="cobre" type="button">Cobre (Cu)</button>
                     <button class="choice" data-material="aluminio" type="button">Alumínio (Al)</button>
                     <button class="choice" data-material="aco" type="button">Aço / Nicromo</button>
                     <button class="choice" data-material="vidro" type="button">Vidro (Isolante)</button>
+                </div>
+                <div class="quick-actions">
+                    <label class="action-btn" for="samplePhotoInput" title="Carregar foto real do material (JPG/PNG)">
+                        📷 Foto da Amostra
+                        <input type="file" id="samplePhotoInput" accept="image/*" hidden>
+                    </label>
+                    <button class="action-btn active" id="tracerToggleBtn" type="button" title="Destacar um elétron e traçar seus vetores de zigue-zague">
+                        📍 Elétron Traçador
+                    </button>
+                    <button class="action-btn active" id="vectorsToggleBtn" type="button" title="Exibir setas de direção em todos os elétrons">
+                        ↗ Vetores
+                    </button>
                 </div>
             </div>
 
@@ -98,15 +110,19 @@
             </div>
 
             <div class="readouts-col">
-                <span class="col-title">Valores em Tempo Real</span>
+                <span class="col-title">Cinemática Microscópica</span>
                 <div class="readouts-compact">
                     <div class="readout-item">
-                        <span>Resistividade</span>
-                        <strong id="matRhoReadout">ρ ≈ 1,68×10⁻⁸ Ω·m</strong>
+                        <span>Vel. Térmica (Caos)</span>
+                        <strong id="matVthReadout">vth ≈ 10⁵ m/s (Rápida)</strong>
                     </div>
                     <div class="readout-item">
                         <span>Vel. de Deriva</span>
-                        <strong id="matVdReadout">vd ≈ 1.0 mm/s</strong>
+                        <strong id="matVdReadout">vd ≈ 0.1 mm/s (Lenta)</strong>
+                    </div>
+                    <div class="readout-item">
+                        <span>Resistividade</span>
+                        <strong id="matRhoReadout">ρ ≈ 1,68×10⁻⁸ Ω·m</strong>
                     </div>
                     <div class="readout-item">
                         <span>Estado</span>
